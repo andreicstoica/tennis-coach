@@ -1,5 +1,5 @@
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
-import { sessionRouter } from "~/server/api/routers/session";
+import { practiceSessionRouter } from "~/server/api/routers/practice-session";
 
 /**
  * This is the primary router for your server.
@@ -7,7 +7,7 @@ import { sessionRouter } from "~/server/api/routers/session";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  session: sessionRouter,
+  session: practiceSessionRouter,
 });
 
 // export type definition of API

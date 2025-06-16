@@ -1,7 +1,7 @@
 // Example model schema from the Drizzle docs
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
-import { pgTable, serial, varchar, text, integer, timestamp, uuid , boolean } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, integer, timestamp , boolean } from 'drizzle-orm/pg-core';
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
