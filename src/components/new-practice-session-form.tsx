@@ -1,5 +1,3 @@
-"use client";
-
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -7,7 +5,6 @@ import { useForm } from "react-hook-form";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -15,7 +12,6 @@ import {
 } from "./ui/form";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -24,6 +20,8 @@ import {
 } from "~/components/ui/card";
 import { Input } from "./ui/input";
 import { Button } from "~/components/ui/button";
+import { api } from "~/trpc/server";
+import { redirect } from "next/navigation";
 
 const formSchema = z.object({
   focus: z.string().min(2, {
@@ -40,7 +38,14 @@ export default function NewPracticeSessionForm() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+    //console.log(values);
+    const focus = values.focus;
+    const newPracticeSession = api.practiceSession.create({ focus });
+    if (newPracticeSession) {
+      redirect(`/practice-session/${newPracticeSession.id}`);
+    } else {
+      throw new Error("new practice session was not made");
+    }
   }
 
   return (

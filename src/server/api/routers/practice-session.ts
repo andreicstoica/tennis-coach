@@ -1,6 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { desc, eq } from 'drizzle-orm';
 import z from 'zod';
+import createPractice from '~/lib/ai-functions';
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { practiceSessions } from "~/server/db/schema";
@@ -35,14 +36,24 @@ export const practiceSessionRouter = createTRPCRouter({
       return foundPracticeSession
     }),
 
-      /*
+  
   create: protectedProcedure
-    .input(WHATEVER THE AI SPITS OUT AS THE PLAN??)
-    .mutation(async ({ ctx }) => {
-      //ctx.db.insert()
-      //userId: ctx.user.id,
+    .input(z.object({ focus: z.string() }))
+    .mutation(async ({ ctx, input }) => {
 
-      return ___;
+      const { focus } = input
+      const plan = await createPractice(focus)
+
+      const newPracticeSession = ctx.db
+        .insert(practiceSessions)
+        .values({
+          focusArea: focus,
+          userId: ctx.user.id,
+          plan: plan
+        })
+        .returning()
+        .execute()
+
+      return newPracticeSession
     })
-      */
 });
