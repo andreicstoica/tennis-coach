@@ -1,4 +1,5 @@
-# Tennis Coach
+# Courtly
+### Personlized tennis sessions to improve your game and reflect on progress.
 
 This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
 
