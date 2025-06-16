@@ -7,7 +7,7 @@ import { practiceSessionRouter } from "~/server/api/routers/practice-session";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  session: practiceSessionRouter,
+  practiceSession: practiceSessionRouter,
 });
 
 // export type definition of API

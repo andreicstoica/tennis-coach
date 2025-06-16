@@ -1,8 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { desc, eq } from 'drizzle-orm';
 import z from 'zod';
-//import { createChat } from '~/lib/session-store';
-//TODO
+
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { practiceSessions } from "~/server/db/schema";
 
@@ -16,13 +15,13 @@ export const practiceSessionRouter = createTRPCRouter({
     // find user practice sessions history in db
     const foundPracticeSessions = await ctx.db.query.practiceSessions.findMany({
       where: eq(practiceSessions.userId, userId),
-      orderBy: [desc(practiceSessionRouter.createdAt)],
+      orderBy: [desc(practiceSessions.createdAt)],
     });
     return foundPracticeSessions ?? null;
   }),
 
   get: protectedProcedure
-    .input(z.object({ id: z.string() }))
+    .input(z.object({ id: z.number() })) // might cause issues, it is a number in the db so set input to so
     .query(async ({ ctx, input }) => {
 
       const foundPracticeSession = await ctx.db.query.practiceSessions.findFirst({
@@ -36,12 +35,14 @@ export const practiceSessionRouter = createTRPCRouter({
       return foundPracticeSession
     }),
 
+      /*
   create: protectedProcedure
+    .input(WHATEVER THE AI SPITS OUT AS THE PLAN??)
     .mutation(async ({ ctx }) => {
-      const newPracticeSessionId = await createPracticeSession({
-        userId: ctx.user.id,
-      })
+      //ctx.db.insert()
+      //userId: ctx.user.id,
 
-      return newPracticeSessionId
+      return ___;
     })
+      */
 });
