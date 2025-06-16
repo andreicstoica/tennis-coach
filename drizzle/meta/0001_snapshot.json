@@ -1,6 +1,6 @@
 {
-  "id": "194ed91a-8e4c-4c69-8fcb-015933dbb7c7",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "ba73639c-52de-4c58-9a81-b3b83962dc96",
+  "prevId": "194ed91a-8e4c-4c69-8fcb-015933dbb7c7",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -109,6 +109,83 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.practice-reflections": {
+      "name": "practice-reflections",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "session_id": {
+          "name": "session_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rating": {
+          "name": "rating",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "practice-reflections_user_id_user_id_fk": {
+          "name": "practice-reflections_user_id_user_id_fk",
+          "tableFrom": "practice-reflections",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "practice-reflections_session_id_practice-sessions_id_fk": {
+          "name": "practice-reflections_session_id_practice-sessions_id_fk",
+          "tableFrom": "practice-reflections",
+          "tableTo": "practice-sessions",
+          "columnsFrom": [
+            "session_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.practice-sessions": {
       "name": "practice-sessions",
       "schema": "",
@@ -153,64 +230,6 @@
           "tableTo": "user",
           "columnsFrom": [
             "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.reflections": {
-      "name": "reflections",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "session_id": {
-          "name": "session_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "rating": {
-          "name": "rating",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "notes": {
-          "name": "notes",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "reflections_session_id_practice-sessions_id_fk": {
-          "name": "reflections_session_id_practice-sessions_id_fk",
-          "tableFrom": "reflections",
-          "tableTo": "practice-sessions",
-          "columnsFrom": [
-            "session_id"
           ],
           "columnsTo": [
             "id"
