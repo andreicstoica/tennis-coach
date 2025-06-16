@@ -53,7 +53,7 @@ export function SigninForm({
   const signInWithGoogle = async () => {
     await authClient.signIn.social({
       provider: "google",
-      callbackURL: "/chat",
+      callbackURL: "/practice-session",
     });
   };
 
@@ -67,7 +67,7 @@ export function SigninForm({
 
     if (data.data?.user) {
       toast.success("Successfully signed in.");
-      redirect("/chat");
+      redirect("/practice-session");
     } else {
       toast.error(data.error?.message);
     }
