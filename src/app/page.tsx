@@ -18,7 +18,7 @@ export default function HomePage() {
 
   if (!session) {
     return (
-      <div className="flex h-screen min-h-screen flex-col justify-between bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
+      <div className="background flex h-screen min-h-screen flex-col justify-between">
         <main className="flex flex-1 items-center justify-center">
           <Card className="w-full max-w-md">
             <CardHeader>
@@ -45,7 +45,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex h-screen min-h-screen flex-col justify-between bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
+    <div className="background flex h-screen min-h-screen flex-col justify-between">
       <main className="flex flex-1 items-center justify-center px-4">
         <Card className="w-full max-w-lg">
           <CardHeader>

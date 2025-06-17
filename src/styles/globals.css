@@ -123,3 +123,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+.background {
+  background-image: linear-gradient(rgba(0, 0, 0, .9),
+        rgba(0, 0, 0, .9)),
+        url(/clay.jpg);
+  background-repeat: repeat;
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: hard-light;
+}

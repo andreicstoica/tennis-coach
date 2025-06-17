@@ -76,9 +76,11 @@ export function Chat({ chatId }: { chatId: string }) {
   return (
     <div className="mx-auto flex h-full max-w-4xl flex-col">
       <div className="flex-shrink-0 border-b p-4">
-        <h2 className="text-lg font-semibold">Chat with your Tennis Coach</h2>
+        <h2 className="text-lg font-semibold">
+          Chat about your practice session
+        </h2>
         <p className="text-sm text-gray-600">
-          Ask questions about your practice plan
+          Clarify drills, rate the session, switch it up
         </p>
       </div>
 
