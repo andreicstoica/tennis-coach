@@ -54,14 +54,14 @@ export async function createChat({ practiceSessionId, userId }: {practiceSession
     const initialMessages = [focus, practice]
 
     try {
-        const instertedRows = await db.insert(chats).values({
+        const insertedRows = await db.insert(chats).values({
             id: id,
             userId: userId,
             name: `${practiceSession.focusArea} - ${practiceSession.createdAt?.getDate()}`,
             messages: initialMessages,
         }).returning({ id: chats.id })
 
-        if (instertedRows.length > 0) {
+        if (insertedRows.length > 0) {
             console.log(`[createChat] Created new chat with ID: ${id}`);
             return id;
         } else {
