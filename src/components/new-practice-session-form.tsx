@@ -89,9 +89,6 @@ export default function NewPracticeSessionForm() {
       <CardFooter>
         <p>Next, we&apos;ll setup a practice session tailored to you!</p>
       </CardFooter>
-      <Button onClick={() => router.push("/practice-session/11")}>
-        load practice 11
-      </Button>
     </Card>
   );
 }
