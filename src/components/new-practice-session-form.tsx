@@ -37,14 +37,15 @@ export default function NewPracticeSessionForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     //console.log(values);
     const focus = values.focus;
-    const newPracticeSession = api.practiceSession.create({ focus });
-    if (newPracticeSession) {
-      redirect(`/practice-session/${newPracticeSession.id}`);
+    const newPracticeSession = await api.practiceSession.create({ focus });
+    const id = newPracticeSession[0]!.id;
+    if (id) {
+      redirect(`/practice-session/${id}`);
     } else {
-      throw new Error("new practice session was not made");
+      throw new Error("New practice session was not made with proper ID.");
     }
   }
 
