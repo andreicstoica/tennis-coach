@@ -10,7 +10,7 @@ Help answer any questions they may have, especially clarifications on how to do 
 export async function POST(req: Request) {
     try {
         const { message, id } = await req.json() as { message: Message, id: string }
-
+        
         const previousMessages = await getChatMessages(id);
         if (previousMessages === null) {
             throw new Error('messages are somehow null?');
@@ -20,6 +20,7 @@ export async function POST(req: Request) {
             messages: previousMessages,
             message,
         })
+        
 
         const result = streamText({
             model: openai('o4-mini'),
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
             },
         })
     } catch (error) {
-        console.log('Error in /api/chat:', error);
+        console.log('Error in /api/practice-session chat:', error);
         return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500 })
     }
 }

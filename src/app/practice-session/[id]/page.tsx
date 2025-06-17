@@ -1,18 +1,42 @@
 import { api } from "~/trpc/react";
 import { Chat } from "~/components/chat";
+import { useSession } from "~/lib/auth-client";
+import router from "next/router";
+import { useEffect, useState } from "react";
 
-// type Session = {
-//   warmup: string;
-//   drill: string;
-//   game: string;
-// };
+export default function PracticeSessionChat({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const [chatId, setChatId] = useState<string | null>(null);
+  const createChatMutation = api.chat.create.useMutation();
+  const { data: session } = useSession();
 
-export default function PracticeSessionChat() {
-  const practiceSession = api.practiceSession.get("id");
-  // TODO
-  // have the chat load, with the auto populated focus as the first user message,
-  // and the practice session generative UI card as the first AI message.
-  // i want the user to be able to clarify the session or change parts of it,
-  // and then rate it at the end.
-  // if it is a high rating, it should appear in their profile as a favorite
+  useEffect(() => {
+    if (!session?.user?.id) {
+      router
+        .push("/signin")
+        .then(() => {
+          return;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
+
+    createChatMutation.mutate(
+      { practiceSessionId: Number(params.id) },
+      {
+        onSuccess: (newChatId) => setChatId(newChatId),
+        onError: (error) => console.error(error),
+      },
+    );
+  }, [params.id, session?.user?.id, createChatMutation]);
+
+  if (createChatMutation.isPending || !chatId) {
+    return <div>Loading...</div>;
+  }
+
+  return <Chat chatId={chatId} />;
 }
