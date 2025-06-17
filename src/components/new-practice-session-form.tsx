@@ -1,3 +1,5 @@
+"use client";
+
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -20,8 +22,8 @@ import {
 } from "~/components/ui/card";
 import { Input } from "./ui/input";
 import { Button } from "~/components/ui/button";
-import { api } from "~/trpc/server";
-import { redirect } from "next/navigation";
+import { api } from "~/trpc/react";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   focus: z.string().min(2, {
@@ -30,6 +32,16 @@ const formSchema = z.object({
 });
 
 export default function NewPracticeSessionForm() {
+  const router = useRouter();
+  const createPracticeSession = api.practiceSession.create.useMutation({
+    onSuccess: (data) => {
+      const id = data[0]?.id;
+      if (id) {
+        router.push(`/practice-session/${id}`);
+      }
+    },
+  });
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -38,15 +50,8 @@ export default function NewPracticeSessionForm() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    //console.log(values);
     const focus = values.focus;
-    const newPracticeSession = await api.practiceSession.create({ focus });
-    const id = newPracticeSession[0]!.id;
-    if (id) {
-      redirect(`/practice-session/${id}`);
-    } else {
-      throw new Error("New practice session was not made with proper ID.");
-    }
+    createPracticeSession.mutate({ focus });
   }
 
   return (
