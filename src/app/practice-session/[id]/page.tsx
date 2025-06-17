@@ -4,9 +4,10 @@ import { Chat } from "~/components/chat";
 export default async function PracticeSessionChat({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const practiceSessionId = Number(params.id);
+  const { id } = await params;
+  const practiceSessionId = Number(id);
 
   try {
     const practiceSession = await api.practiceSession.get({
@@ -27,8 +28,10 @@ export default async function PracticeSessionChat({
       console.log(`new chat id: ${newChatId}`);
       return <Chat chatId={newChatId} />;
     }
+
+    return <Chat chatId={chatId} />;
   } catch (error) {
     console.error("error loading practice session:", error);
-    return <div>error loading practice session</div>;
+    return <div>Error loading practice session</div>;
   }
 }

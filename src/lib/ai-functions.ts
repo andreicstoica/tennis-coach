@@ -28,7 +28,6 @@ export async function createChat({ practiceSessionId, userId }: {practiceSession
     const id = generateId();
     console.log(`[createChat] Attemping to create new chat with ID: ${id}`);
 
-    // First get the practice session
     const practiceSession = await db.query.practiceSessions.findFirst({
         where: eq(practiceSessions.id, practiceSessionId)
     });

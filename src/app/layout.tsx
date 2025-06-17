@@ -5,6 +5,7 @@ import { Geist } from "next/font/google";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import { Toaster } from "~/components/ui/sonner";
+import { GlobalHeader } from "~/components/global-header";
 
 export const metadata: Metadata = {
   title: "Courtly",
@@ -23,9 +24,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${geist.variable}`}>
-      <body>
+      <body className="flex h-screen flex-col overflow-hidden">
         <TRPCReactProvider>
-          {children}
+          <GlobalHeader />
+          <main className="flex-1 overflow-hidden">{children}</main>
           <Toaster />
         </TRPCReactProvider>
       </body>

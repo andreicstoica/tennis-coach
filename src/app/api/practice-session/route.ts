@@ -25,14 +25,14 @@ export async function POST(req: Request) {
     }
 
     // Combine existing messages with new ones
-    const allMessages = [...(existingChat.messages || []), ...messages];
+    const allMessages = [...(existingChat.messages ?? []), ...messages];
     
     const result = streamText({
       model: openai('gpt-4o-mini'),
       system: prompt,
       messages: convertToCoreMessages(allMessages),
       onFinish: async (result) => {
-        // Save updated messages back to database
+        // Save updated messages back to database onFinish
         const updatedMessages = [
           ...allMessages,
           {

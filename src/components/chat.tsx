@@ -3,18 +3,12 @@
 import { useChat } from "@ai-sdk/react";
 import { createIdGenerator } from "ai";
 import { useEffect, useRef } from "react";
-import { useSession } from "~/lib/auth-client";
 import { api } from "~/trpc/react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
 export function Chat({ chatId }: { chatId: string }) {
-  const {
-    data: chatData,
-    isLoading,
-    error,
-  } = api.chat.get.useQuery({ chatId });
-  //const name = useSession().data?.user.name;
+  const { data: chatData } = api.chat.get.useQuery({ chatId });
 
   const {
     messages,
@@ -22,11 +16,11 @@ export function Chat({ chatId }: { chatId: string }) {
     input,
     handleInputChange,
     handleSubmit,
-    error: chatError,
-    isLoading: isChatLoading,
+    error,
+    status,
   } = useChat({
     id: chatId,
-    initialMessages: chatData?.messages ?? [],
+    initialMessages: [], // Start empty, we'll set messages when data loads
     api: "/api/practice-session",
     sendExtraMessageFields: true,
     maxSteps: 5,
@@ -37,10 +31,6 @@ export function Chat({ chatId }: { chatId: string }) {
     }),
     onError: (error) => {
       console.error("client side ai stream error:", error);
-    },
-    onFinish: (message) => {
-      // TODO: Save messages back to DB
-      console.log("Chat finished, should save:", message);
     },
   });
 
@@ -54,21 +44,37 @@ export function Chat({ chatId }: { chatId: string }) {
 
   // Initialize messages when chat data loads
   useEffect(() => {
-    if (chatData?.messages && messages.length === 0) {
+    if (chatData?.messages && chatData.messages.length > 0) {
       setMessages(chatData.messages);
     }
-  }, [chatData?.messages, setMessages, messages.length]);
+  }, [chatData?.messages, setMessages]);
 
-  if (isLoading) {
-    return <div>Loading chat...</div>;
+  if (chatData === undefined) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        Loading chat...
+      </div>
+    );
   }
 
   if (error) {
-    return <div>Error loading chat: {error.message}</div>;
+    return (
+      <div className="flex h-screen items-center justify-center">
+        Error loading chat: {error.message}
+      </div>
+    );
+  }
+
+  if (!chatData) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        Chat not found
+      </div>
+    );
   }
 
   return (
-    <div className="mx-auto flex h-screen max-w-4xl flex-col">
+    <div className="mx-auto flex h-full max-w-4xl flex-col">
       <div className="flex-shrink-0 border-b p-4">
         <h2 className="text-lg font-semibold">Chat with your Tennis Coach</h2>
         <p className="text-sm text-gray-600">
@@ -77,6 +83,12 @@ export function Chat({ chatId }: { chatId: string }) {
       </div>
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
+        {messages.length === 0 && !status && (
+          <div className="py-8 text-center text-gray-500">
+            No messages yet. Start the conversation!
+          </div>
+        )}
+
         {messages.map((message) => (
           <div
             key={message.id}
@@ -93,7 +105,7 @@ export function Chat({ chatId }: { chatId: string }) {
           </div>
         ))}
 
-        {isChatLoading && (
+        {status === "streaming" && (
           <div className="mr-auto max-w-[80%] rounded-lg bg-gray-100 p-3">
             <div className="mb-1 text-sm font-medium">Coach</div>
             <div className="text-sm">Typing...</div>
@@ -110,17 +122,16 @@ export function Chat({ chatId }: { chatId: string }) {
             onChange={handleInputChange}
             placeholder="Ask about your practice plan..."
             className="flex-1"
-            disabled={isChatLoading}
+            disabled={status === "streaming"}
           />
-          <Button type="submit" disabled={isChatLoading || !input.trim()}>
+          <Button
+            type="submit"
+            disabled={status === "streaming" || !input.trim()}
+          >
             Send
           </Button>
         </div>
-        {chatError && (
-          <p className="mt-2 text-sm text-red-600">
-            Error: {chatError.message}
-          </p>
-        )}
+        {error && <p className="mt-2 text-sm text-red-600">Error: {error}</p>}
       </form>
     </div>
   );
