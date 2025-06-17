@@ -2,7 +2,7 @@
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
 import { pgTable, serial, varchar, text, integer, timestamp , boolean } from 'drizzle-orm/pg-core';
-
+import { type Message } from "ai";
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
  * database instance for multiple projects.
@@ -64,6 +64,7 @@ export const practiceSessions = pgTable('practice-sessions', {
   userId: text('user_id').references(() => user.id),
   focusArea: varchar('focus_area', { length: 50 }).notNull(),
   plan: text('plan').notNull(),      // JSON or markdown of warmup/drill/game
+  chatId: varchar({ length: 256 }).references(() => chats.id),
   createdAt: timestamp('created_at').defaultNow(),
 });
 
@@ -75,3 +76,22 @@ export const practiceReflections = pgTable('practice-reflections', {
   notes: text('notes'),
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+type Messages = Message[]
+
+export const chats = pgTable(
+  "chats",
+  (d) => ({
+    id: d.varchar({ length: 256 }).primaryKey().notNull(),
+    userId: text('user_id').references(() => user.id),
+    name: d.varchar({ length: 256 }).notNull(),
+    createdAt: d
+      .timestamp({ withTimezone: true })
+      .defaultNow(),
+    updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+    messages: d
+    .jsonb('messages')
+    .$type<Messages>()
+    .default([]),
+  }),
+);

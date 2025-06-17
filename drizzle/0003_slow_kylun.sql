@@ -1,0 +1,2 @@
+ALTER TABLE "practice-sessions" ADD COLUMN "chatId" varchar(256);--> statement-breakpoint
+ALTER TABLE "practice-sessions" ADD CONSTRAINT "practice-sessions_chatId_chats_id_fk" FOREIGN KEY ("chatId") REFERENCES "public"."chats"("id") ON DELETE no action ON UPDATE no action;

@@ -1,10 +1,10 @@
-import { TRPCError } from '@trpc/server';
 import { desc, eq } from 'drizzle-orm';
 import z from 'zod';
-import createPractice from '~/lib/ai-functions';
+import { createPractice } from '~/lib/ai-functions';
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { practiceSessions } from "~/server/db/schema";
+import { getPracticeSessionById } from '../helpers/practiceSession';
 
 export const practiceSessionRouter = createTRPCRouter({
 
@@ -24,19 +24,9 @@ export const practiceSessionRouter = createTRPCRouter({
   get: protectedProcedure
     .input(z.object({ id: z.number() })) // might cause issues, it is a number in the db so set input to so
     .query(async ({ ctx, input }) => {
-
-      const foundPracticeSession = await ctx.db.query.practiceSessions.findFirst({
-        where: eq(practiceSessions.id, input.id)
-      })
-
-      if (!foundPracticeSession || foundPracticeSession.userId !== ctx.user.id) {
-        throw new TRPCError({ code: "UNAUTHORIZED" })
-      }
-
-      return foundPracticeSession
+      return await getPracticeSessionById(ctx, input.id)
     }),
 
-  
   create: protectedProcedure
     .input(z.object({ focus: z.string() }))
     .mutation(async ({ ctx, input }) => {
