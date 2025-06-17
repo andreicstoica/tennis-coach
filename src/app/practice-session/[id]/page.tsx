@@ -1,42 +1,17 @@
-import { api } from "~/trpc/react";
+import { api } from "~/trpc/server";
 import { Chat } from "~/components/chat";
-import { useSession } from "~/lib/auth-client";
-import router from "next/router";
-import { useEffect, useState } from "react";
 
-export default function PracticeSessionChat({
+export default async function PracticeSessionChat({
   params,
 }: {
   params: { id: string };
 }) {
-  const [chatId, setChatId] = useState<string | null>(null);
-  const createChatMutation = api.chat.create.useMutation();
-  const { data: session } = useSession();
+  const practiceSessionId = Number(params.id);
+  const newChatId = await api.chat.create({
+    practiceSessionId: practiceSessionId,
+  });
 
-  useEffect(() => {
-    if (!session?.user?.id) {
-      router
-        .push("/signin")
-        .then(() => {
-          return;
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    }
+  console.log(`new chat id: ${newChatId}`);
 
-    createChatMutation.mutate(
-      { practiceSessionId: Number(params.id) },
-      {
-        onSuccess: (newChatId) => setChatId(newChatId),
-        onError: (error) => console.error(error),
-      },
-    );
-  }, [params.id, session?.user?.id, createChatMutation]);
-
-  if (createChatMutation.isPending || !chatId) {
-    return <div>Loading...</div>;
-  }
-
-  return <Chat chatId={chatId} />;
+  return <Chat chatId={newChatId} />;
 }

@@ -26,17 +26,20 @@ export const chatRouter = createTRPCRouter({
     create: protectedProcedure
         .input(z.object({ practiceSessionId: z.number() }))
         .mutation(async ({ ctx, input }) => {
+            console.log('trying to make newChat, await createChat');
             const newChatId = await createChat({
                 userId: ctx.user.id,
-                practiceSession: input.practiceSessionId,
+                practiceSessionId: input.practiceSessionId,
             })
+            console.log('new chat made, newChatId:', newChatId);
 
+            console.log('trying to find practice session');
             const foundPracticeSession = await getPracticeSessionById(ctx, input.practiceSessionId)
 
             if (!foundPracticeSession) {
                 throw new TRPCError({ code: "UNAUTHORIZED" })
             }
-
+            console.log('found practice session, updating db with chat');
             await ctx.db
             .update(practiceSessions)
             .set({ chatId: newChatId })
@@ -47,7 +50,7 @@ export const chatRouter = createTRPCRouter({
                 )
             )
             .execute();
-
+            console.log('updated db, returning newchatid to load it');
             return newChatId
         })
 });

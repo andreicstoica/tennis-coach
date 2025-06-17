@@ -2,9 +2,8 @@ import { openai } from '@ai-sdk/openai';
 import { generateText, generateId, type Message } from 'ai';
 import { db } from '~/server/db';
 import { chats } from "~/server/db/schema"
-import { type practiceSessions } from '~/server/db/schema';
-
-type PracticeSession = typeof practiceSessions.$inferSelect
+import { practiceSessions } from '~/server/db/schema';
+import { eq } from 'drizzle-orm';
 
 export const maxDuration = 10;
 
@@ -25,9 +24,18 @@ export async function createPractice(focus: string): Promise<string> {
     return result.text
 }
 
-export async function createChat({ practiceSession, userId }: {practiceSession: PracticeSession; userId: string}): Promise<string> {
+export async function createChat({ practiceSessionId, userId }: {practiceSessionId: number; userId: string}): Promise<string> {
     const id = generateId();
     console.log(`[createChat] Attemping to create new chat with ID: ${id}`);
+
+    // First get the practice session
+    const practiceSession = await db.query.practiceSessions.findFirst({
+        where: eq(practiceSessions.id, practiceSessionId)
+    });
+
+    if (!practiceSession) {
+        throw new Error(`Practice session with id ${practiceSessionId} not found`);
+    }
 
     const focus: Message = {
         id: generateId(),
@@ -38,7 +46,7 @@ export async function createChat({ practiceSession, userId }: {practiceSession: 
 
     const practice: Message = {
         id: generateId(),
-        createdAt: practiceSession.createdAt ?? undefined,
+        createdAt: practiceSession.createdAt ?? undefined,  
         content: practiceSession.plan,
         role: 'assistant'
     }
@@ -64,7 +72,6 @@ export async function createChat({ practiceSession, userId }: {practiceSession: 
         console.error(`[createChat] Error in creating chat with ID: ${id}:`, error)
         throw error;
     }
-
 }
 
 

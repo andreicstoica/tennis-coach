@@ -3,8 +3,11 @@
 import { useChat, type Message } from "@ai-sdk/react";
 import { createIdGenerator } from "ai";
 import { useEffect, useRef } from "react";
+import { useSession } from "~/lib/auth-client";
+import { api } from "~/trpc/react";
 
 export function Chat({ chatId }: { chatId: string }) {
+  /*
   const {
     messages,
     setMessages,
@@ -36,6 +39,15 @@ export function Chat({ chatId }: { chatId: string }) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+  */
+  const { data, isLoading, error } = api.chat.get.useQuery({ chatId });
+  const name = useSession().data?.user.name;
 
-  return <div>hello</div>;
+  if (data) {
+    return (
+      <div>
+        hello: {name}, data is: {data.messages?.toString()}
+      </div>
+    );
+  }
 }
