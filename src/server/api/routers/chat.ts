@@ -5,6 +5,7 @@ import { createChat } from '~/lib/ai-functions';
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { chats, practiceSessions } from "~/server/db/schema";
+import { type Message } from 'ai';
 import { getPracticeSessionById } from '../helpers/practiceSession';
 
 export const chatRouter = createTRPCRouter({
@@ -56,5 +57,30 @@ export const chatRouter = createTRPCRouter({
                 console.error(`[createChat] Error in creating chat inside of trpc mutation:`, error)
                 throw error;
             }
+        }),
+
+    saveMessages: protectedProcedure
+        .input(z.object({ 
+            chatId: z.string(),
+            messages: z.array(z.custom<Message>())
+        }))
+        .mutation(async ({ ctx, input }) => {
+            const foundChat = await ctx.db.query.chats.findFirst({
+                where: eq(chats.id, input.chatId)
+            });
+
+            if (!foundChat || foundChat.userId !== ctx.user.id) {
+                throw new TRPCError({ code: "UNAUTHORIZED" });
+            }
+
+            await ctx.db
+                .update(chats)
+                .set({ 
+                    messages: input.messages,
+                    updatedAt: new Date()
+                })
+                .where(eq(chats.id, input.chatId));
+
+            return { success: true };
         })
 });

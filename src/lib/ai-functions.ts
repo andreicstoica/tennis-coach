@@ -57,7 +57,7 @@ export async function createChat({ practiceSessionId, userId }: {practiceSession
         const insertedRows = await db.insert(chats).values({
             id: id,
             userId: userId,
-            name: `${practiceSession.focusArea} - ${practiceSession.createdAt?.getDate()}`,
+            name: `${practiceSession.focusArea} - ${practiceSession.createdAt?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
             messages: initialMessages,
         }).returning({ id: chats.id })
 
