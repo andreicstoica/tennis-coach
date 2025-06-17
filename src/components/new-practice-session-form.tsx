@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -15,7 +14,6 @@ import {
 } from "./ui/form";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -24,6 +22,8 @@ import {
 } from "~/components/ui/card";
 import { Input } from "./ui/input";
 import { Button } from "~/components/ui/button";
+import { api } from "~/trpc/react";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   focus: z.string().min(2, {
@@ -32,6 +32,17 @@ const formSchema = z.object({
 });
 
 export default function NewPracticeSessionForm() {
+  const router = useRouter();
+  const createPracticeSession = api.practiceSession.create.useMutation({
+    onSuccess: (data) => {
+      console.log(data);
+      const id = data[0]?.id;
+      if (id) {
+        router.push(`/practice-session/${id}`);
+      }
+    },
+  });
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -39,8 +50,9 @@ export default function NewPracticeSessionForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    const focus = values.focus;
+    createPracticeSession.mutate({ focus });
   }
 
   return (
@@ -77,6 +89,9 @@ export default function NewPracticeSessionForm() {
       <CardFooter>
         <p>Next, we&apos;ll setup a practice session tailored to you!</p>
       </CardFooter>
+      <Button onClick={() => router.push("/practice-session/11")}>
+        load practice 11
+      </Button>
     </Card>
   );
 }

@@ -15,6 +15,20 @@
       "when": 1750100401170,
       "tag": "0001_rare_riptide",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1750170007442,
+      "tag": "0002_panoramic_naoko",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1750170495629,
+      "tag": "0003_slow_kylun",
+      "breakpoints": true
     }
   ]
 }
