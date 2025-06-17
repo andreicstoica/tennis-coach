@@ -20,7 +20,7 @@ export function Chat({ chatId }: { chatId: string }) {
     status,
   } = useChat({
     id: chatId,
-    initialMessages: [], // Start empty, we'll set messages when data loads
+    initialMessages: [], // need to set messages when data loads since there are 2 that will load in
     api: "/api/practice-session",
     sendExtraMessageFields: true,
     maxSteps: 5,
@@ -42,7 +42,7 @@ export function Chat({ chatId }: { chatId: string }) {
     }
   }, [messages]);
 
-  // Initialize messages when chat data loads
+  // Initialize messages when the first 2 load in
   useEffect(() => {
     if (chatData?.messages && chatData.messages.length > 0) {
       setMessages(chatData.messages);
