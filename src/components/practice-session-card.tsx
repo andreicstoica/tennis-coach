@@ -33,7 +33,7 @@ export function PracticeSessionCard({ session }: PracticeSessionCardProps) {
     // </div>
 
     <Link href={`/practice-session/${session.id}`}>
-      <Card className="w-full">
+      <Card className="shadow-blue/10 w-full shadow-2xl">
         <CardHeader>
           <CardTitle className="capitalize">{session.focusArea}</CardTitle>
           <CardDescription>{formattedDate}</CardDescription>
