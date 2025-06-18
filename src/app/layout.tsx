@@ -34,9 +34,7 @@ export default function RootLayout({
         >
           <TRPCReactProvider>
             <GlobalHeader />
-            <main className="background flex-1 overflow-hidden">
-              {children}
-            </main>
+            <main className="flex-1 overflow-hidden">{children}</main>
             <Toaster />
           </TRPCReactProvider>
         </ThemeProvider>

@@ -45,7 +45,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="background flex h-screen min-h-screen flex-col justify-between">
+    <div className="flex h-screen min-h-screen flex-col justify-between">
       <main className="flex flex-1 items-center justify-center px-4">
         <Card className="w-full max-w-lg">
           <CardHeader>

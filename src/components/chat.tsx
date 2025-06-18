@@ -8,6 +8,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Card, CardContent } from "./ui/card";
 import { Loader2 } from "lucide-react";
+import { ChatSkeleton } from "~/components/chat-skeleton";
 
 export function Chat({ chatId }: { chatId: string }) {
   const { data: chatData } = api.chat.get.useQuery({ chatId });
@@ -61,11 +62,7 @@ export function Chat({ chatId }: { chatId: string }) {
   }, [chatData?.messages, setMessages]);
 
   if (chatData === undefined) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        Loading chat...
-      </div>
-    );
+    return <ChatSkeleton />;
   }
 
   if (error) {
