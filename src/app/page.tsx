@@ -66,7 +66,9 @@ export default function HomePage() {
 
       {/* Previous sessions */}
       <section>
-        <h2 className="mb-4 text-lg font-bold">Previous Practice Sessions</h2>
+        <h2 className="mb-4 ml-1.5 text-lg font-bold">
+          Previous Practice Sessions
+        </h2>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           <PreviousPracticeSessions />
         </div>
