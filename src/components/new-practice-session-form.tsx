@@ -31,7 +31,11 @@ const formSchema = z.object({
   }),
 });
 
-export default function NewPracticeSessionForm() {
+export default function NewPracticeSessionForm({
+  ref,
+}: {
+  ref: React.ForwardedRef<HTMLDivElement>;
+}) {
   const router = useRouter();
   const createPracticeSession = api.practiceSession.create.useMutation({
     onSuccess: (data) => {
@@ -56,7 +60,7 @@ export default function NewPracticeSessionForm() {
   }
 
   return (
-    <Card>
+    <Card ref={ref}>
       <CardHeader>
         <CardTitle>What do you want to focus on today?</CardTitle>
         <CardDescription>
@@ -75,19 +79,21 @@ export default function NewPracticeSessionForm() {
                 <FormItem>
                   <FormLabel />
                   <FormControl>
-                    <Input placeholder="backhand" {...field} />
+                    <Input placeholder="My backhand... :(" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit">Submit</Button>
           </form>
         </Form>
       </CardContent>
 
-      <CardFooter>
-        <p>Next, we&apos;ll setup a practice session tailored to you!</p>
+      <CardFooter className="flex flex-col items-start">
+        <>Next, we&apos;ll setup a practice session tailored to you!</>
+        <Button className="mt-3" type="submit">
+          Submit
+        </Button>
       </CardFooter>
     </Card>
   );
