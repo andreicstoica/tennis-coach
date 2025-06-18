@@ -2,6 +2,8 @@
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { api } from "~/trpc/react";
+import { useRouter } from "next/navigation";
 
 import { useForm } from "react-hook-form";
 import {
@@ -22,8 +24,8 @@ import {
 } from "~/components/ui/card";
 import { Input } from "./ui/input";
 import { Button } from "~/components/ui/button";
-import { api } from "~/trpc/react";
-import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { LettersPullUp } from "~/components/letters-pull-up";
 
 const formSchema = z.object({
   focus: z.string().min(2, {
@@ -45,6 +47,9 @@ export default function NewPracticeSessionForm({
         router.push(`/practice-session/${id}`);
       }
     },
+    onError: (error) => {
+      console.error("failed to create session:", error);
+    },
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -56,6 +61,7 @@ export default function NewPracticeSessionForm({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const focus = values.focus;
+    console.log("form submit, creating practice session");
     createPracticeSession.mutate({ focus });
   }
 
@@ -85,15 +91,33 @@ export default function NewPracticeSessionForm({
                 </FormItem>
               )}
             />
+            <Button
+              className="mt-3"
+              type="submit"
+              disabled={
+                createPracticeSession.isPending ||
+                createPracticeSession.isPaused
+              }
+            >
+              {createPracticeSession.isPending ||
+              createPracticeSession.isPaused ? (
+                <>
+                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                  <LettersPullUp
+                    text={"Coach is thinking"}
+                    className="text-xs"
+                  />
+                </>
+              ) : (
+                "Submit"
+              )}
+            </Button>
           </form>
         </Form>
       </CardContent>
 
       <CardFooter className="flex flex-col items-start">
         <>Next, we&apos;ll setup a practice session tailored to you!</>
-        <Button className="mt-3" type="submit">
-          Submit
-        </Button>
       </CardFooter>
     </Card>
   );
