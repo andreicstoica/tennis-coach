@@ -6,6 +6,8 @@ import { useEffect, useRef } from "react";
 import { api } from "~/trpc/react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { Card, CardContent } from "./ui/card";
+import { Loader2 } from "lucide-react";
 
 export function Chat({ chatId }: { chatId: string }) {
   const { data: chatData } = api.chat.get.useQuery({ chatId });
@@ -26,7 +28,6 @@ export function Chat({ chatId }: { chatId: string }) {
     maxSteps: 5,
     experimental_throttle: 50,
     generateId: createIdGenerator({
-      prefix: "msgc",
       size: 16,
     }),
     onError: (error) => {
@@ -36,11 +37,21 @@ export function Chat({ chatId }: { chatId: string }) {
 
   // Auto scroll when message is streaming
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
+
+  const scrollToBottom = () => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
+  };
+
+  useEffect(() => {
+    scrollToBottom();
   }, [messages]);
+
+  // Initial scroll on mount
+  useEffect(() => {
+    scrollToBottom();
+  }, []);
 
   // Initialize messages when the first 2 load in
   useEffect(() => {
@@ -74,47 +85,37 @@ export function Chat({ chatId }: { chatId: string }) {
   }
 
   return (
-    <div className="mx-auto flex h-full max-w-4xl flex-col">
-      <div className="flex-shrink-0 border-b p-4">
-        <h2 className="text-lg font-semibold">
-          Chat about your practice session
-        </h2>
-        <p className="text-sm text-gray-600">
-          Clarify drills, rate the session, switch it up
-        </p>
-      </div>
-
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
+    <div className="flex h-[calc(100vh-4rem)] flex-col">
+      <div className="flex-1 space-y-4 overflow-y-auto p-4">
         {messages.length === 0 && !status && (
           <div className="py-8 text-center text-gray-500">
             No messages yet. Start the conversation!
           </div>
         )}
 
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`rounded-lg p-3 ${
-              message.role === "user"
-                ? "ml-auto max-w-[80%] bg-blue-100"
-                : "mr-auto max-w-[80%] bg-gray-100"
-            }`}
-          >
-            <div className="mb-1 text-sm font-medium capitalize">
-              {message.role === "user" ? "You" : "Coach"}
-            </div>
-            <div className="text-sm whitespace-pre-wrap">{message.content}</div>
-          </div>
-        ))}
+        <div className="space-y-4">
+          {messages.map((message) => (
+            <Card
+              key={message.id}
+              className={`${
+                message.role === "user"
+                  ? "bg-primary text-primary-foreground ml-auto max-w-[80%]"
+                  : "bg-muted mr-auto max-w-[80%]"
+              }`}
+            >
+              <CardContent className="p-4">
+                <div className="mb-1 text-sm font-medium">
+                  {message.role === "user" ? "You" : "Coach"}
+                </div>
+                <div className="text-sm whitespace-pre-wrap">
+                  {message.content}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
 
-        {status === "streaming" && (
-          <div className="mr-auto max-w-[80%] rounded-lg bg-gray-100 p-3">
-            <div className="mb-1 text-sm font-medium">Coach</div>
-            <div className="text-sm">Typing...</div>
-          </div>
-        )}
-
-        <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="flex-shrink-0 border-t p-4">
@@ -129,8 +130,13 @@ export function Chat({ chatId }: { chatId: string }) {
           <Button
             type="submit"
             disabled={status === "streaming" || !input.trim()}
+            className="w-20"
           >
-            Send
+            {status === "streaming" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "Send"
+            )}
           </Button>
         </div>
         {error && <p className="mt-2 text-sm text-red-600">Error: {error}</p>}
