@@ -8,12 +8,23 @@ import { eq } from 'drizzle-orm';
 export const maxDuration = 10;
 
 export async function createPractice(focus: string): Promise<string> {
+
     const prompt = `
-    You are a tennis coach.  Create a single practice session focused on "${focus}".
-    Return **strictly** valid JSON with three keys: "warmup", "drill", and "game", each
-    mapping to a short paragraph describing that part of the session.
-    Example:
-    {"warmup":"…","drill":"…","game":"…"}`.trim();
+        You are a world-class tennis coach. Create a structured practice session for two competitive players (NTRP 4.0+) focused on: "${focus}".
+
+        Return **strictly valid JSON** with exactly three keys: "warmup", "drill", and "game". Each maps to a short paragraph (2-5 sentences) describing that part of the session.
+
+        Guidelines:
+        - All activities must be done between exactly two players. Avoid any drills requiring coach feeding, extra players, or ball baskets.
+        - Equipment should be minimal and common: racquets, balls, cones (or substitutes like water bottles), and court lines.
+        - "warmup" (~5-10 min): Active and tennis-specific (e.g. dynamic footwork, lateral movement, shadow swings, mini volleys). Avoid jogging laps.
+        - "drill": A cooperative or semi-competitive rally-based exercise that directly targets "${focus}". Emphasize technique, timing, and consistency. Use proven formats from elite coaches (e.g. YouTube, Reddit, or classic coaching books).
+        - "game": A 10to20 minute competitive mini-game that builds on the drill. Use creative rules, constraints, or scoring tweaks to reinforce "${focus}" in match-like situations. It should be engaging, repeatable, and fun.
+        - Vary responses when called with the same "${focus}" more than once. Avoid identical outputs on consecutive runs.
+
+        Output only valid JSON, like:
+        {"warmup":"...","drill":"...","game":"..."}
+    `.trim();
 
     const result = await generateText({
         model: openai('gpt-4.5-preview'),

@@ -1,15 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { Settings } from "lucide-react";
+import { UserRoundCog } from "lucide-react";
 import { Button } from "./ui/button";
 import { useSession } from "~/lib/auth-client";
+import { Separator } from "./ui/separator";
 
 export function GlobalHeader() {
   const { data: session } = useSession();
 
   return (
-    <header className="border-b bg-white">
+    <header>
       <div className="flex h-16 items-center justify-between px-6">
         <Link href="/" className="flex items-center space-x-2">
           <div className="text-2xl font-bold text-green-700">Courtly</div>
@@ -18,12 +19,9 @@ export function GlobalHeader() {
         <div className="flex items-center space-x-4">
           {session ? (
             <>
-              <span className="text-sm text-gray-700">
-                Hello, {session.user.name || session.user.email}
-              </span>
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/profile">
-                  <Settings className="h-5 w-5" />
+                  <UserRoundCog className="h-10 w-10" />
                   <span className="sr-only">Settings</span>
                 </Link>
               </Button>
@@ -35,6 +33,7 @@ export function GlobalHeader() {
           )}
         </div>
       </div>
+      <Separator />
     </header>
   );
 }
