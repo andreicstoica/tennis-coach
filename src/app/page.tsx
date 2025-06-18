@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Footer from "~/components/footer";
+import { PreviousPracticeSessions } from "~/components/previous-practice-sessions";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -11,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import { ScrollArea } from "~/components/ui/scroll-area";
 import { useSession } from "~/lib/auth-client";
 
 export default function HomePage() {
@@ -18,7 +20,7 @@ export default function HomePage() {
 
   if (!session) {
     return (
-      <div className="background flex h-screen min-h-screen flex-col justify-between">
+      <div className="flex h-screen min-h-screen flex-col justify-between">
         <main className="flex flex-1 items-center justify-center">
           <Card className="w-full max-w-md">
             <CardHeader>
@@ -45,8 +47,9 @@ export default function HomePage() {
   }
 
   return (
-    <div className="background flex h-screen min-h-screen flex-col justify-between">
-      <main className="flex flex-1 items-center justify-center px-4">
+    <div className="flex h-screen min-h-screen flex-col justify-between">
+      <main className="flex flex-1 flex-col items-center justify-center gap-10 p-4">
+        {/* top card to start new practice */}
         <Card className="w-full max-w-lg">
           <CardHeader>
             <CardTitle>
@@ -66,6 +69,21 @@ export default function HomePage() {
             </Link>
           </CardContent>
         </Card>
+
+        {/* previous practice card table */}
+        <div>
+          <div className="text-md pb-4 pl-1.5 font-bold">
+            Previous Practice Sessions
+          </div>
+          <ScrollArea
+            className="w-full"
+            style={{ height: "calc(100vh - 400px)" }}
+          >
+            <div className="grid w-full grid-cols-1 gap-8 overflow-y-auto md:grid-cols-2 lg:grid-cols-3">
+              <PreviousPracticeSessions />
+            </div>
+          </ScrollArea>
+        </div>
       </main>
 
       <Footer />
