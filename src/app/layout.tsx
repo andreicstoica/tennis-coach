@@ -7,6 +7,7 @@ import { ThemeProvider } from "~/components/theme-provider";
 import { TRPCReactProvider } from "~/trpc/react";
 import { Toaster } from "~/components/ui/sonner";
 import { GlobalHeader } from "~/components/global-header";
+import Footer from "~/components/footer";
 
 export const metadata: Metadata = {
   title: "Courtly",
@@ -25,16 +26,12 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${geist.variable}`} suppressHydrationWarning>
-      <body className="flex h-screen flex-col overflow-hidden">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+      <body className="flex h-screen flex-col">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <TRPCReactProvider>
             <GlobalHeader />
-            <main className="flex-1 overflow-hidden">{children}</main>
+            <main className="h-full flex-1 overflow-auto">{children}</main>
+            <Footer />
             <Toaster />
           </TRPCReactProvider>
         </ThemeProvider>
