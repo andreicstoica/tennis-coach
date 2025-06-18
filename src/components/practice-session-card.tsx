@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -8,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
+import * as motion from "motion/react-client";
 
 interface PracticeSession {
   plan: string;
@@ -26,13 +28,21 @@ export function PracticeSessionCard({ session }: PracticeSessionCardProps) {
   const formattedDate = new Date(session.createdAt!).toLocaleDateString(); // maybe make this just month and day
 
   return (
-    // <div className="mb-4 rounded-lg border p-4 shadow-sm">
-    //   <h3 className="text-lg font-semibold">{session.focus}</h3>
-    //   <p className="text-sm text-gray-500">{formattedDate}</p>
-    //   <p className="mt-2 text-base">{session.tldr}</p>
-    // </div>
-
     <Link href={`/practice-session/${session.id}`}>
+      <motion.div
+        whileHover="hover"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, ease: "backInOut" }}
+      >
+        <Image
+          src={"/tennis-ball.svg"}
+          alt="tennis ball"
+          width={2}
+          height={2}
+        />
+      </motion.div>
+
       <Card className="shadow-blue/10 w-full shadow-2xl">
         <CardHeader>
           <CardTitle className="capitalize">{session.focusArea}</CardTitle>
