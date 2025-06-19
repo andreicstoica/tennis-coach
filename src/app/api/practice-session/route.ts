@@ -4,6 +4,7 @@ import type { Message } from "ai";
 import { eq } from "drizzle-orm";
 import { db } from "~/server/db";
 import { chats } from "~/server/db/schema";
+import { tools } from "~/lib/ai-tools";
 
 export const maxDuration = 30;
 
@@ -12,7 +13,7 @@ Help answer any questions they may have, especially clarifications on how to do 
 Be encouraging, specific, and provide practical advice. Keep responses concise but helpful.
 Assume they are at a generally high level, unless they say otherwise.`;
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<Response> {
   try {
     const { messages, id } = (await req.json()) as {
       messages: Message[];
@@ -35,6 +36,10 @@ export async function POST(req: Request) {
       model: openai("gpt-4o-mini"),
       system: prompt,
       messages: convertToCoreMessages(allMessages),
+      maxSteps: 5,
+      tools: {
+        createPractice: tools.practiceTool,
+      },
       onFinish: async (result) => {
         // Save updated messages back to database onFinish
         const updatedMessages = [

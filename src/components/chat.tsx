@@ -9,6 +9,13 @@ import { Input } from "./ui/input";
 import { Card, CardContent } from "./ui/card";
 import { Loader2 } from "lucide-react";
 import { ChatSkeleton } from "~/components/chat-skeleton";
+import { PracticeUi } from "~/components/practice-ui";
+
+type PracticeType = {
+  warmup: string;
+  drill: string;
+  game: string;
+};
 
 export function Chat({ chatId }: { chatId: string }) {
   const { data: chatData } = api.chat.get.useQuery({ chatId });
@@ -85,31 +92,63 @@ export function Chat({ chatId }: { chatId: string }) {
     <div className="flex h-[calc(100vh-4rem)] flex-col">
       <div className="flex-1 space-y-4 overflow-y-auto p-4">
         {messages.length === 0 && !status && (
-          <div className="py-8 text-center text-gray-500">
+          <div className="py-8 text-center text-gray-400">
             No messages yet. Start the conversation!
           </div>
         )}
 
         <div className="space-y-4">
-          {messages.map((message) => (
-            <Card
-              key={message.id}
-              className={`${
-                message.role === "user"
-                  ? "bg-primary text-primary-foreground ml-auto max-w-[80%]"
-                  : "bg-muted mr-auto max-w-[80%]"
-              }`}
-            >
-              <CardContent className="p-4">
-                <div className="mb-1 text-sm font-medium">
-                  {message.role === "user" ? "You" : "Coach"}
-                </div>
-                <div className="text-sm whitespace-pre-wrap">
-                  {message.content}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {messages.map((message) =>
+            message.parts.map((part, i) => {
+              switch (part.type) {
+                // normal messages
+                case "text":
+                  return (
+                    <Card
+                      key={message.id}
+                      className={`${
+                        message.role === "user"
+                          ? "bg-primary text-primary-foreground ml-auto max-w-[80%]"
+                          : "bg-muted mr-auto max-w-[80%]"
+                      }`}
+                    >
+                      <CardContent className="p-4">
+                        <div className="mb-1 text-sm font-medium">
+                          {message.role === "user" ? "You" : "Coach"}
+                        </div>
+                        <div className="text-sm whitespace-pre-wrap">
+                          {message.content}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+
+                // practice gen tool
+                case "tool-invocation":
+                  // only one tool invocation so far
+                  // can add another switch for future tools
+                  console.log("made it to tool invocation");
+                  const { state } = part.toolInvocation;
+                  if (state === "result") {
+                    // need to make json bc string in db :{
+                    const practice = JSON.parse(
+                      message.content,
+                    ) as PracticeType;
+                    return (
+                      <div key={`${message.id}-${i}`}>
+                        <PracticeUi
+                          warmup={practice.warmup}
+                          drill={practice.drill}
+                          game={practice.game}
+                        />
+                      </div>
+                    );
+                  } else {
+                    <Loader2 className="h-4 w-4 animate-spin" />;
+                  }
+              }
+            }),
+          )}
 
           <div ref={messagesEndRef} />
         </div>
