@@ -40,4 +40,22 @@ export const practiceSessionRouter = createTRPCRouter({
 
       return newPracticeSession;
     }),
+
+  addPlan: protectedProcedure
+    .input(z.object({ plan: z.string(), practiceSessionId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const { plan, practiceSessionId } = input;
+
+      await ctx.db
+        .update(practiceSessions)
+        .set({
+          plan: plan,
+        })
+        .where(eq(practiceSessions.id, practiceSessionId));
+      console.log(
+        `Updated practice session ${practiceSessionId} with new plan.`,
+      );
+
+      return { success: true };
+    }),
 });

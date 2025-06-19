@@ -160,7 +160,10 @@ export function Chat({ chatId }: { chatId: string }) {
                 case "tool-invocation":
                   // only one tool invocation so far
                   // can add another switch for future tools
-                  console.log("made it to tool invocation");
+                  console.log(
+                    "made it to tool invocation, content:",
+                    message.content,
+                  );
                   const { state } = part.toolInvocation;
                   if (state === "result") {
                     // need to make json bc string in db :{

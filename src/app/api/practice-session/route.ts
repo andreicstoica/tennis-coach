@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { db } from "~/server/db";
 import { chats } from "~/server/db/schema";
 import { tools } from "~/lib/ai-tools";
+import { api } from "~/trpc/server";
 
 export const maxDuration = 30;
 
@@ -32,6 +33,16 @@ export async function POST(req: Request): Promise<Response> {
     // Combine existing messages with new ones
     const allMessages = [...(existingChat.messages ?? []), ...messages];
 
+    if (!existingChat.id) {
+      console.error(`[API Route] No practiceSessionId found for chatId: ${id}`);
+      return new Response(
+        JSON.stringify({
+          error: "Practice session not linked to this chat. Cannot save plan.",
+        }),
+        { status: 404 },
+      );
+    }
+
     const result = streamText({
       model: openai("gpt-4o-mini"),
       system: prompt,
@@ -41,6 +52,26 @@ export async function POST(req: Request): Promise<Response> {
         createPractice: tools.practiceTool,
       },
       onFinish: async (result) => {
+
+        // Check if createPractice tool was called and update practice session plan
+        const toolCalls = result.toolCalls;
+        if (toolCalls && toolCalls.length > 0) {
+          const createPracticeCall = toolCalls.find(
+            (call) => call.toolName === "createPractice"
+          );
+          
+          if (createPracticeCall) {
+            const toolCallId = createPracticeCall.toolCallId;
+
+          // 2. Find the corresponding tool output in the result object
+          const relevantToolOutput = result.response.messages.find(
+            (output) => output.id === toolCallId
+          );
+            console.log('route.ts',relevantToolOutput);
+            //await api.practiceSession.addPlan({ plan: relevantToolOutput, practiceSessionId: Number(existingChat.id) });
+          }
+        }
+
         // Save updated messages back to database onFinish
         const updatedMessages = [
           ...allMessages,

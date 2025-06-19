@@ -1,7 +1,6 @@
 import { api } from "~/trpc/server";
 import { Chat } from "~/components/chat";
 import { PracticeSummary } from "~/components/practice-summary";
-import { PracticeSummarySkeleton } from "~/components/practice-summary-skeleton";
 
 export default async function PracticeSessionChat({
   params,
