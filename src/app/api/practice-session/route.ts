@@ -3,7 +3,7 @@ import { convertToCoreMessages, streamText } from "ai";
 import type { Message } from "ai";
 import { eq } from "drizzle-orm";
 import { db } from "~/server/db";
-import { chats } from "~/server/db/schema";
+import { chats, practiceSessions } from "~/server/db/schema";
 import { tools } from "~/lib/ai-tools";
 import { api } from "~/trpc/server";
 
@@ -33,8 +33,13 @@ export async function POST(req: Request): Promise<Response> {
     // Combine existing messages with new ones
     const allMessages = [...(existingChat.messages ?? []), ...messages];
 
-    if (!existingChat.id) {
-      console.error(`[API Route] No practiceSessionId found for chatId: ${id}`);
+    // Find the practice session linked to this chat
+    const practiceSession = await db.query.practiceSessions.findFirst({
+      where: eq(practiceSessions.chatId, id),
+    });
+
+    if (!practiceSession) {
+      console.error(`[API Route] No practice session found for chatId: ${id}`);
       return new Response(
         JSON.stringify({
           error: "Practice session not linked to this chat. Cannot save plan.",
@@ -52,23 +57,26 @@ export async function POST(req: Request): Promise<Response> {
         createPractice: tools.practiceTool,
       },
       onFinish: async (result) => {
+        // Check if createPractice tool was called and save the plan
+        // Look for tool result in the response messages
+        const toolResultMessage = result.response.messages.find(
+          (msg) => msg.role === "tool"
+        );
 
-        // Check if createPractice tool was called and update practice session plan
-        const toolCalls = result.toolCalls;
-        if (toolCalls && toolCalls.length > 0) {
-          const createPracticeCall = toolCalls.find(
-            (call) => call.toolName === "createPractice"
-          );
-          
-          if (createPracticeCall) {
-            const toolCallId = createPracticeCall.toolCallId;
+        if (toolResultMessage && toolResultMessage.content) {
+          try {
+            // Convert the tool result content to a string for database storage
+            const planContent = JSON.stringify(toolResultMessage.content);
 
-          // 2. Find the corresponding tool output in the result object
-          const relevantToolOutput = result.response.messages.find(
-            (output) => output.id === toolCallId
-          );
-            console.log('route.ts',relevantToolOutput);
-            //await api.practiceSession.addPlan({ plan: relevantToolOutput, practiceSessionId: Number(existingChat.id) });
+            // Save the practice plan to the database using tRPC procedure
+            await api.practiceSession.addPlan({
+              practiceSessionId: practiceSession.id,
+              plan: planContent,
+            });
+
+            console.log(`[API Route] Saved practice plan to session ${practiceSession.id}`);
+          } catch (error) {
+            console.error("[API Route] Failed to save practice plan:", error);
           }
         }
 

@@ -1,5 +1,6 @@
 import { desc, eq } from "drizzle-orm";
 import z from "zod";
+import { TRPCError } from "@trpc/server";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { practiceSessions } from "~/server/db/schema";
@@ -22,6 +23,20 @@ export const practiceSessionRouter = createTRPCRouter({
     .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
       return await getPracticeSessionById(ctx, input.id);
+    }),
+
+  getByChatId: protectedProcedure
+    .input(z.object({ chatId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const practiceSession = await ctx.db.query.practiceSessions.findFirst({
+        where: eq(practiceSessions.chatId, input.chatId),
+      });
+
+      if (!practiceSession || practiceSession.userId !== ctx.user.id) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      return practiceSession;
     }),
 
   create: protectedProcedure

@@ -1,8 +1,8 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { createIdGenerator } from "ai";
-import { useEffect, useRef } from "react";
+import { createIdGenerator, type Message } from "ai";
+import { useEffect, useRef, useState } from "react";
 import { api } from "~/trpc/react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -20,18 +20,30 @@ type PracticeType = {
 export function Chat({ chatId }: { chatId: string }) {
   const { data: chatData } = api.chat.get.useQuery({ chatId });
 
+  // Get the practice session linked to this chat
+  const { data: practiceSession } = api.practiceSession.getByChatId.useQuery(
+    {
+      chatId,
+    },
+    {
+      enabled: !!chatId,
+    },
+  );
+
+  const addPlanMutation = api.practiceSession.addPlan.useMutation();
+
   const {
     messages,
-    setMessages,
     input,
     handleInputChange,
     handleSubmit,
     error,
     status,
     reload,
+    setMessages,
   } = useChat({
     id: chatId,
-    initialMessages: [], // need to set messages when data loads since there are 2 that will load in
+    initialMessages: [],
     api: "/api/practice-session",
     sendExtraMessageFields: true,
     maxSteps: 5,
@@ -39,12 +51,44 @@ export function Chat({ chatId }: { chatId: string }) {
     generateId: createIdGenerator({
       size: 16,
     }),
+    onToolCall: ({ toolCall }) => {
+      if (toolCall.toolName === "createPractice") {
+        console.log("[Chat] Tool call started - generating practice plan...");
+      }
+    },
+    onFinish: (message) => {
+      const hasCompletedTool = message.parts?.some(
+        (part) =>
+          part.type === "tool-invocation" &&
+          part.toolInvocation.state === "result" &&
+          part.toolInvocation.toolName === "createPractice",
+      );
+
+      if (hasCompletedTool && practiceSession?.id) {
+        const toolPart = message.parts?.find(
+          (part) =>
+            part.type === "tool-invocation" &&
+            part.toolInvocation.toolName === "createPractice",
+        );
+
+        if (
+          toolPart?.type === "tool-invocation" &&
+          toolPart.toolInvocation.state === "result"
+        ) {
+          addPlanMutation.mutate({
+            practiceSessionId: practiceSession.id,
+            plan: toolPart.toolInvocation.result as string,
+          });
+          console.log("Saved plan to db");
+        }
+      }
+    },
     onError: (error) => {
       console.error("client side ai stream error:", error);
     },
   });
 
-  // reload for first practice session tool call
+  // Reload for first practice session tool call
   const hasInitialReloadOccurred = useRef<Record<string, boolean>>({});
 
   // Auto scroll when message is streaming
@@ -65,31 +109,40 @@ export function Chat({ chatId }: { chatId: string }) {
     scrollToBottom();
   }, []);
 
-  // Initialize messages when the first (focus) loads
+  // Initialize messages and check for reload
+  const [hasInitialized, setHasInitialized] = useState(false);
+
   useEffect(() => {
-    if (!chatData?.messages || chatData.messages.length === 0) {
+    if (
+      !chatData?.messages ||
+      chatData.messages.length === 0 ||
+      hasInitialized
+    ) {
       return;
     }
 
-    setMessages(chatData.messages);
+    // Set initial messages from database ONLY ONCE to stop double messages
+    setMessages((prev) => {
+      const map = new Map<string, Message>();
+      if (chatData.messages) {
+        [...prev, ...chatData.messages].forEach((m) => map.set(m.id, m));
+      }
+      return Array.from(map.values());
+    });
+    setHasInitialized(true);
 
-    // already reloaded once
+    // Check if we need to reload
     if (hasInitialReloadOccurred.current[chatId]) {
       return;
     }
 
     const initialUserMessageExists = chatData.messages[0]?.role === "user";
-    // const hasAssistantResponse = chatData.messages.some(
-    //   (message) => message.role === "assistant",
-    // );
     const hasToolResult = chatData.messages.some((msg) => {
-      msg.parts?.map((part) => {
-        if (part.type === "tool-invocation") {
-          return part.toolInvocation.state === "result";
-        }
-        // not a tool invocation part
-        return false;
-      });
+      return msg.parts?.some(
+        (part) =>
+          part.type === "tool-invocation" &&
+          part.toolInvocation.state === "result",
+      );
     });
 
     if (initialUserMessageExists && !hasToolResult) {
@@ -99,7 +152,7 @@ export function Chat({ chatId }: { chatId: string }) {
       hasInitialReloadOccurred.current[chatId] = true;
       void reload();
     }
-  }, [chatData?.messages, setMessages, reload, chatId]);
+  }, [chatData?.messages, reload, chatId, setMessages, hasInitialized]);
 
   if (chatData === undefined) {
     return <ChatSkeleton />;
@@ -136,6 +189,15 @@ export function Chat({ chatId }: { chatId: string }) {
               switch (part.type) {
                 // normal messages
                 case "text":
+                  // Skip text if this message has a completed tool result
+                  const hasCompletedTool = message.parts.some(
+                    (p) =>
+                      p.type === "tool-invocation" &&
+                      p.toolInvocation.state === "result",
+                  );
+
+                  if (hasCompletedTool) return null;
+
                   return (
                     <Card
                       key={message.id}
@@ -158,30 +220,47 @@ export function Chat({ chatId }: { chatId: string }) {
 
                 // practice gen tool
                 case "tool-invocation":
-                  // only one tool invocation so far
-                  // can add another switch for future tools
-                  console.log(
-                    "made it to tool invocation, content:",
-                    message.content,
-                  );
-                  const { state } = part.toolInvocation;
-                  if (state === "result") {
-                    // need to make json bc string in db :{
-                    const practice = JSON.parse(
-                      message.content,
-                    ) as PracticeType;
-                    return (
-                      <div key={`${message.id}-${i}`}>
-                        <PracticeUi
-                          warmup={practice.warmup}
-                          drill={practice.drill}
-                          game={practice.game}
-                        />
-                      </div>
-                    );
+                  const { state, toolName } = part.toolInvocation;
+
+                  if (state === "result" && toolName === "createPractice") {
+                    try {
+                      // Parse the tool result directly instead of message content
+                      const result = part.toolInvocation.result as string;
+                      const practice = JSON.parse(result) as PracticeType;
+                      return (
+                        <div key={`${message.id}-${i}`}>
+                          <PracticeUi
+                            warmup={practice.warmup}
+                            drill={practice.drill}
+                            game={practice.game}
+                          />
+                        </div>
+                      );
+                    } catch (err) {
+                      console.error("Failed to parse practice JSON:", err);
+                      return (
+                        <Card
+                          key={`${message.id}-${i}`}
+                          className="bg-muted mr-auto max-w-[80%]"
+                        >
+                          <CardContent className="p-4">
+                            <div className="text-sm text-red-500">
+                              Error: Invalid practice plan format
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    }
                   } else {
-                    <Loader2 className="h-4 w-4 animate-spin" />;
+                    return (
+                      <Loader2
+                        key={`${message.id}-${i}`}
+                        className="h-4 w-4 animate-spin"
+                      />
+                    );
                   }
+                default:
+                  return null;
               }
             }),
           )}

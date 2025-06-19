@@ -35,6 +35,7 @@ export default async function PracticeSessionChat({
         <div className="w-[70%]">
           <Chat chatId={chatId} />
         </div>
+
         <div className="w-[30%]">
           <PracticeSummary practiceSession={practiceSession} />
         </div>

@@ -8,7 +8,7 @@ import {
 import { PracticeSummarySkeleton } from "./practice-summary-skeleton";
 
 interface PracticeSession {
-  plan: string;
+  plan: string | null;
   id: number;
   chatId: string | null;
   createdAt: Date | null;
