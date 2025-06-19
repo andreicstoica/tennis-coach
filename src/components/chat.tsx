@@ -10,6 +10,8 @@ import { Card, CardContent } from "./ui/card";
 import { Loader2 } from "lucide-react";
 import { ChatSkeleton } from "~/components/chat-skeleton";
 import { PracticeUi } from "~/components/practice-ui";
+import { THINKING_MESSAGES } from "./thinking-messages";
+import { motion } from "framer-motion";
 
 type PracticeType = {
   warmup: string;
@@ -154,6 +156,37 @@ export function Chat({ chatId }: { chatId: string }) {
     }
   }, [chatData?.messages, reload, chatId, setMessages, hasInitialized]);
 
+  // --- CYCLING "THINKING" MESSAGES ---
+  const [currentThinkingMessageIndex, setCurrentThinkingMessageIndex] =
+    useState(0);
+
+  const isThinking =
+    status === "streaming" ||
+    messages.some((m) =>
+      m.parts?.some(
+        (p) =>
+          p.type === "tool-invocation" && p.toolInvocation.state !== "result",
+      ),
+    );
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+    if (isThinking) {
+      intervalId = setInterval(() => {
+        setCurrentThinkingMessageIndex(
+          (prevIndex) => (prevIndex + 1) % THINKING_MESSAGES.length,
+        );
+      }, 3000); // Change message every 3 seconds
+    } else {
+      // Reset index when not thinking
+      setCurrentThinkingMessageIndex(0);
+    }
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isThinking]); // Re-run effect when isThinking changes
+  // --- END CYCLING "THINKING" MESSAGES ---
+
   if (chatData === undefined) {
     return <ChatSkeleton />;
   }
@@ -253,10 +286,28 @@ export function Chat({ chatId }: { chatId: string }) {
                     }
                   } else {
                     return (
-                      <Loader2
+                      <Card
                         key={`${message.id}-${i}`}
-                        className="h-4 w-4 animate-spin"
-                      />
+                        className="bg-muted mr-auto max-w-[80%]"
+                      >
+                        <CardContent className="p-4">
+                          <div className="mb-1 text-sm font-medium">Coach</div>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />{" "}
+                              <motion.div
+                                key={currentThinkingMessageIndex}
+                                className="text-sm"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 1.75 }}
+                              >
+                                {THINKING_MESSAGES[currentThinkingMessageIndex]}
+                              </motion.div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
                     );
                   }
                 default:

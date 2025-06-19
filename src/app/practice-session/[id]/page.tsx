@@ -31,15 +31,16 @@ export default async function PracticeSessionChat({
     }
 
     return (
-      <div className="flex h-full flex-row">
-        <div className="w-[70%]">
-          <Chat chatId={chatId} />
-        </div>
+      // <div className="flex h-full flex-row">
+      //   <div className="w-[70%]">
+      //     <Chat chatId={chatId} />
+      //   </div>
 
-        <div className="w-[30%]">
-          <PracticeSummary practiceSession={practiceSession} />
-        </div>
-      </div>
+      //   <div className="w-[30%]">
+      //     <PracticeSummary practiceSession={practiceSession} />
+      //   </div>
+      // </div>
+      <Chat chatId={chatId} />
     );
   } catch (error) {
     console.error("error loading practice session:", error);
