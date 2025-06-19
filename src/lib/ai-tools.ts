@@ -1,6 +1,7 @@
 import { tool as createTool } from "ai";
 import { z } from "zod";
 import { createPractice } from "./ai-functions";
+import { api } from "~/server/trpc";
 
 export const practiceTool = createTool({
   description: "Generate a practice session",
@@ -9,6 +10,8 @@ export const practiceTool = createTool({
   }),
   execute: async function ({ focus }) {
     const practice = await createPractice(focus);
+    // need to insert practice into chat db here
+    await insertPracticeIntoChatDB(practice);
     return practice;
   },
 });

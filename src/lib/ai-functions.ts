@@ -55,18 +55,11 @@ export async function createChat({
   const focus: Message = {
     id: generateId(),
     createdAt: practiceSession.createdAt ?? undefined,
-    content: practiceSession.focusArea,
+    content: `Make me a practice session focusing on: ${practiceSession.focusArea}`,
     role: "user",
   };
 
-  const practice: Message = {
-    id: generateId(),
-    createdAt: practiceSession.createdAt ?? undefined,
-    content: practiceSession.plan,
-    role: "assistant",
-  };
-
-  const initialMessages = [focus, practice];
+  const initialMessages = [focus];
 
   try {
     const insertedRows = await db
@@ -80,7 +73,7 @@ export async function createChat({
       .returning({ id: chats.id });
 
     if (insertedRows.length > 0) {
-      console.log(`[createChat] Created new chat with ID: ${id}`);
+      console.log(`[createChat] Created new chat with ID ${id}`);
       return id;
     } else {
       console.error(

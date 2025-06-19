@@ -1,15 +1,12 @@
-import { desc, eq } from 'drizzle-orm';
-import z from 'zod';
-import { createPractice } from '~/lib/ai-functions';
+import { desc, eq } from "drizzle-orm";
+import z from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { practiceSessions } from "~/server/db/schema";
-import { getPracticeSessionById } from '../helpers/practiceSession';
+import { getPracticeSessionById } from "../helpers/practiceSession";
 
 export const practiceSessionRouter = createTRPCRouter({
-
-  list: protectedProcedure
-    .query(async ({ ctx } ) => {
+  list: protectedProcedure.query(async ({ ctx }) => {
     // getting user session
     const userId = ctx.user.id;
 
@@ -22,28 +19,25 @@ export const practiceSessionRouter = createTRPCRouter({
   }),
 
   get: protectedProcedure
-    .input(z.object({ id: z.number() })) // might cause issues, it is a number in the db so set input to so
+    .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
-      return await getPracticeSessionById(ctx, input.id)
+      return await getPracticeSessionById(ctx, input.id);
     }),
 
   create: protectedProcedure
     .input(z.object({ focus: z.string() }))
     .mutation(async ({ ctx, input }) => {
-
-      const { focus } = input
-      const plan = await createPractice(focus)
+      const { focus } = input;
 
       const newPracticeSession = ctx.db
         .insert(practiceSessions)
         .values({
           focusArea: focus,
           userId: ctx.user.id,
-          plan: plan
         })
         .returning()
-        .execute()
+        .execute();
 
-      return newPracticeSession
-    })
+      return newPracticeSession;
+    }),
 });

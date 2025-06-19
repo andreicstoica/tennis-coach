@@ -28,6 +28,7 @@ export function Chat({ chatId }: { chatId: string }) {
     handleSubmit,
     error,
     status,
+    reload,
   } = useChat({
     id: chatId,
     initialMessages: [], // need to set messages when data loads since there are 2 that will load in
@@ -42,6 +43,9 @@ export function Chat({ chatId }: { chatId: string }) {
       console.error("client side ai stream error:", error);
     },
   });
+
+  // reload for first practice session tool call
+  const hasInitialReloadOccurred = useRef<Record<string, boolean>>({});
 
   // Auto scroll when message is streaming
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -61,12 +65,41 @@ export function Chat({ chatId }: { chatId: string }) {
     scrollToBottom();
   }, []);
 
-  // Initialize messages when the first 2 load in
+  // Initialize messages when the first (focus) loads
   useEffect(() => {
-    if (chatData?.messages && chatData.messages.length > 0) {
-      setMessages(chatData.messages);
+    if (!chatData?.messages || chatData.messages.length === 0) {
+      return;
     }
-  }, [chatData?.messages, setMessages]);
+
+    setMessages(chatData.messages);
+
+    // already reloaded once
+    if (hasInitialReloadOccurred.current[chatId]) {
+      return;
+    }
+
+    const initialUserMessageExists = chatData.messages[0]?.role === "user";
+    // const hasAssistantResponse = chatData.messages.some(
+    //   (message) => message.role === "assistant",
+    // );
+    const hasToolResult = chatData.messages.some((msg) => {
+      msg.parts?.map((part) => {
+        if (part.type === "tool-invocation") {
+          return part.toolInvocation.state === "result";
+        }
+        // not a tool invocation part
+        return false;
+      });
+    });
+
+    if (initialUserMessageExists && !hasToolResult) {
+      console.log(
+        "[Chat] Initial user message found without complete tool response. Triggering AI reload.",
+      );
+      hasInitialReloadOccurred.current[chatId] = true;
+      void reload();
+    }
+  }, [chatData?.messages, setMessages, reload, chatId]);
 
   if (chatData === undefined) {
     return <ChatSkeleton />;

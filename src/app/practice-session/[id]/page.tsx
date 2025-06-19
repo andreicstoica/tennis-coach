@@ -31,20 +31,13 @@ export default async function PracticeSessionChat({
       return <Chat chatId={newChatId} />;
     }
 
-    const isPlanReady =
-      practiceSession.plan !== null && practiceSession.plan !== undefined;
-
     return (
       <div className="flex h-full flex-row">
         <div className="w-[70%]">
           <Chat chatId={chatId} />
         </div>
         <div className="w-[30%]">
-          {!isPlanReady ? (
-            <PracticeSummarySkeleton />
-          ) : (
-            <PracticeSummary practiceSession={practiceSession} />
-          )}
+          <PracticeSummary practiceSession={practiceSession} />
         </div>
       </div>
     );
