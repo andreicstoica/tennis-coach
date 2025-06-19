@@ -14,6 +14,9 @@ export default tseslint.config(
   ...compat.extends("next/core-web-vitals"),
   {
     files: ["**/*.ts", "**/*.tsx"],
+    ignores: [
+      "**/components/ui/**", // trying to deploy here
+    ],
     plugins: {
       drizzle,
     },

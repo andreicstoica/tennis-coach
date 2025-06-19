@@ -1,5 +1,4 @@
 /** eslint-disable react/display-name */
-/** eslint-disable react/display-name */
 "use client";
 
 import {
@@ -66,6 +65,7 @@ interface ExpandableProps extends ExpandablePropsBase {
   onCollapseEnd?: () => void;
 }
 // ROOT Expand component
+// eslint-disable-next-line react/display-name
 const Expandable = React.forwardRef<HTMLDivElement, ExpandableProps>(
   (
     {
