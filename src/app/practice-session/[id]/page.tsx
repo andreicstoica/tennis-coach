@@ -1,6 +1,5 @@
 import { api } from "~/trpc/server";
 import { Chat } from "~/components/chat";
-import { PracticeSummary } from "~/components/practice-summary";
 
 export default async function PracticeSessionChat({
   params,
@@ -31,6 +30,7 @@ export default async function PracticeSessionChat({
     }
 
     return (
+      // keeping this makes me feel safe @ harrison :))) <3
       // <div className="flex h-full flex-row">
       //   <div className="w-[70%]">
       //     <Chat chatId={chatId} />

@@ -23,9 +23,9 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Input } from "./ui/input";
-import { Button } from "~/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { LettersPullUp } from "~/components/letters-pull-up";
+import { Button } from "./ui/button";
 
 const formSchema = z.object({
   focus: z.string().min(2, {
