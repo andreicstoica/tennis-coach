@@ -1,0 +1,1 @@
+ALTER TABLE "practice-sessions" ALTER COLUMN "plan" DROP NOT NULL;

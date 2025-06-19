@@ -5,9 +5,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "~/components/ui/accordion";
+import { PracticeSummarySkeleton } from "./practice-summary-skeleton";
 
 interface PracticeSession {
-  plan: string;
+  plan: string | null;
   id: number;
   chatId: string | null;
   createdAt: Date | null;
@@ -20,6 +21,10 @@ export async function PracticeSummary({
 }: {
   practiceSession: PracticeSession;
 }) {
+  if (!practiceSession.plan) {
+    return <PracticeSummarySkeleton />;
+  }
+
   return (
     <ScrollArea className="border-l p-4">
       <div className="">

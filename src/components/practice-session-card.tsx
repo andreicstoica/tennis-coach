@@ -13,8 +13,8 @@ import type { MouseEventHandler } from "react";
 import { Badge } from "./ui/badge";
 
 interface PracticeSession {
-  plan: string;
-  id: number;
+  plan: string | null;
+  id: number | null;
   chatId: string | null;
   createdAt: Date | null;
   userId: string | null;

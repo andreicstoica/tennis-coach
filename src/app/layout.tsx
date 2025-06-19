@@ -7,7 +7,6 @@ import { ThemeProvider } from "~/components/theme-provider";
 import { TRPCReactProvider } from "~/trpc/react";
 import { Toaster } from "~/components/ui/sonner";
 import { GlobalHeader } from "~/components/global-header";
-import Footer from "~/components/footer";
 
 export const metadata: Metadata = {
   title: "Courtly",
@@ -31,7 +30,6 @@ export default function RootLayout({
           <TRPCReactProvider>
             <GlobalHeader />
             <main className="h-full flex-1 overflow-auto">{children}</main>
-            <Footer />
             <Toaster />
           </TRPCReactProvider>
         </ThemeProvider>

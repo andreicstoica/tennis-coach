@@ -1,7 +1,5 @@
 import { api } from "~/trpc/server";
 import { Chat } from "~/components/chat";
-import { PracticeSummary } from "~/components/practice-summary";
-import { PracticeSummarySkeleton } from "~/components/practice-summary-skeleton";
 
 export default async function PracticeSessionChat({
   params,
@@ -31,22 +29,18 @@ export default async function PracticeSessionChat({
       return <Chat chatId={newChatId} />;
     }
 
-    const isPlanReady =
-      practiceSession.plan !== null && practiceSession.plan !== undefined;
-
     return (
-      <div className="flex h-full flex-row">
-        <div className="w-[70%]">
-          <Chat chatId={chatId} />
-        </div>
-        <div className="w-[30%]">
-          {!isPlanReady ? (
-            <PracticeSummarySkeleton />
-          ) : (
-            <PracticeSummary practiceSession={practiceSession} />
-          )}
-        </div>
-      </div>
+      // keeping this makes me feel safe @ harrison :))) <3
+      // <div className="flex h-full flex-row">
+      //   <div className="w-[70%]">
+      //     <Chat chatId={chatId} />
+      //   </div>
+
+      //   <div className="w-[30%]">
+      //     <PracticeSummary practiceSession={practiceSession} />
+      //   </div>
+      // </div>
+      <Chat chatId={chatId} />
     );
   } catch (error) {
     console.error("error loading practice session:", error);
