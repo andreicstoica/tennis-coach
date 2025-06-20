@@ -441,7 +441,7 @@ const ExpandableCard = React.forwardRef<HTMLDivElement, ExpandableCardProps>(
             <div
               className={clsx(
                 systemTheme === "dark"
-                  ? "rounded-md bg-black p-2 shadow-xl ring-1 ring-white/5 sm:rounded-lg sm:p-3 md:rounded-3xl md:p-4"
+                  ? "rounded-md bg-zinc-900 p-2 shadow-xl ring-1 ring-white/5 sm:rounded-lg sm:p-3 md:rounded-3xl md:p-4"
                   : "rounded-md bg-white p-2 shadow-xl ring-1 ring-black/5 sm:rounded-lg sm:p-3 md:rounded-3xl md:p-4",
               )}
             >
