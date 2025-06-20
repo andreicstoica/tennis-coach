@@ -33,44 +33,46 @@ export const PracticeSummaryExpand = ({
   const formattedDate = new Date(session.createdAt!).toLocaleDateString();
   const planJson = JSON.parse(session.plan!) as Plan;
 
-  return (
-    <Expandable expandDirection="both" expandBehavior="push">
-      <ExpandableTrigger>
-        <ExpandableCard
-          className="w-full items-start justify-start"
-          hoverToExpand={false}
-          expandDelay={100}
-          collapseDelay={400}
-        >
-          <ExpandableCardHeader>
-            <div className="font-bold">
-              <div className="text-md truncate font-bold text-ellipsis capitalize">
-                {session.focusArea}
+  if (planJson) {
+    return (
+      <Expandable expandDirection="both" expandBehavior="push">
+        <ExpandableTrigger>
+          <ExpandableCard
+            className="w-full items-start justify-start"
+            hoverToExpand={false}
+            expandDelay={100}
+            collapseDelay={400}
+          >
+            <ExpandableCardHeader>
+              <div className="font-bold">
+                <div className="text-md truncate font-bold text-ellipsis capitalize">
+                  {session.focusArea}
+                </div>
+                <Label>{formattedDate}</Label>
               </div>
-              <Label>{formattedDate}</Label>
-            </div>
-          </ExpandableCardHeader>
+            </ExpandableCardHeader>
 
-          <ExpandableContent preset="blur-md" stagger staggerChildren={0.3}>
-            <div className="text-sm font-medium">Warmup</div>
-            <div className="text-sm font-light">{planJson.warmup}</div>
-          </ExpandableContent>
+            <ExpandableContent preset="blur-md" stagger staggerChildren={0.3}>
+              <div className="text-sm font-medium">Warmup</div>
+              <div className="text-sm font-light">{planJson.warmup}</div>
+            </ExpandableContent>
 
-          <ExpandableContent preset="blur-md" stagger staggerChildren={0.3}>
-            <div className="text-sm font-medium">Drill</div>
-            <div className="text-sm font-light">{planJson.drill}</div>
-          </ExpandableContent>
+            <ExpandableContent preset="blur-md" stagger staggerChildren={0.3}>
+              <div className="text-sm font-medium">Drill</div>
+              <div className="text-sm font-light">{planJson.drill}</div>
+            </ExpandableContent>
 
-          <ExpandableContent preset="blur-md" stagger staggerChildren={0.3}>
-            <div className="text-sm font-medium">Game</div>
-            <div className="text-sm font-light">{planJson.game}</div>
-          </ExpandableContent>
+            <ExpandableContent preset="blur-md" stagger staggerChildren={0.3}>
+              <div className="text-sm font-medium">Game</div>
+              <div className="text-sm font-light">{planJson.game}</div>
+            </ExpandableContent>
 
-          <ExpandableCardFooter>
-            {/* <Button>Revisit Chat</Button> */}
-          </ExpandableCardFooter>
-        </ExpandableCard>
-      </ExpandableTrigger>
-    </Expandable>
-  );
+            <ExpandableCardFooter>
+              {/* <Button>Revisit Chat</Button> */}
+            </ExpandableCardFooter>
+          </ExpandableCard>
+        </ExpandableTrigger>
+      </Expandable>
+    );
+  }
 };
