@@ -1,6 +1,9 @@
 "use client";
 
+import { motion, useSpring, useTransform } from "framer-motion";
 import Link from "next/link";
+import type { MouseEventHandler } from "react";
+import { Badge } from "./ui/badge";
 import {
   Card,
   CardContent,
@@ -8,9 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import { motion, useSpring, useTransform } from "framer-motion";
-import type { MouseEventHandler } from "react";
-import { Badge } from "./ui/badge";
 
 interface PracticeSession {
   plan: string | null;

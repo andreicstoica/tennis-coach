@@ -430,7 +430,7 @@ const ExpandableCard = React.forwardRef<HTMLDivElement, ExpandableCardProps>(
             "shadow-[inset_0_0_1px_1px_#ffffff4d] sm:shadow-[inset_0_0_2px_1px_#ffffff4d]",
             "ring-1 ring-black/5",
             "max-w-[calc(100%-1rem)] sm:max-w-[calc(100%-2rem)] md:max-w-[calc(100%-4rem)]",
-            "mx-auto w-full",
+            "w-full",
             "transition-all duration-300 ease-in-out",
           )}
         >
@@ -472,11 +472,7 @@ const ExpandableCardHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, children, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6", className)}
-    {...props}
-  >
+  <div ref={ref} className={cn("flex flex-col", className)} {...props}>
     <motion.div layout className="flex items-start justify-between">
       {children}
     </motion.div>

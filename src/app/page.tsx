@@ -42,7 +42,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-10 p-4">
+    <div className="flex w-full flex-col items-start justify-start gap-10 p-4">
       {/* Top banner */}
       <Card className="w-full">
         <CardHeader>
@@ -65,11 +65,11 @@ export default function HomePage() {
       </Card>
 
       {/* Previous sessions */}
-      <section>
+      <section className="flex w-full flex-col justify-start">
         <h2 className="mb-4 ml-1.5 text-lg font-bold">
           Previous Practice Sessions
         </h2>
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="flex w-full justify-start">
           <PreviousPracticeSessions />
         </div>
       </section>

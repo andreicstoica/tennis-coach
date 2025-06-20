@@ -13,7 +13,7 @@ export function GlobalHeader() {
     <header>
       <div className="flex h-16 items-center justify-between px-6">
         <Link href="/" className="flex items-center space-x-2">
-          <div className="text-2xl font-bold text-green-700">Courtly</div>
+          <div className="text-2xl font-bold">Courtly</div>
         </Link>
 
         <div className="flex items-center space-x-4">

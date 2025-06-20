@@ -31,23 +31,21 @@ export function ProfileSheet({ user }: { user: User }) {
 
   return (
     <Sheet>
-      <SheetTrigger asChild>
-        <Button variant="secondary">
-          {user.image ? (
-            <Avatar>
-              <AvatarImage src={user.image} alt="profile image" />
-              <AvatarFallback>
-                {user.name.charAt(0).toLocaleUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-          ) : (
-            <Avatar>
-              <AvatarFallback>
-                <UserRoundCog />
-              </AvatarFallback>
-            </Avatar>
-          )}
-        </Button>
+      <SheetTrigger asChild className="cursor-pointer">
+        {user.image ? (
+          <Avatar className="shadow-sm shadow-gray-300">
+            <AvatarImage src={user.image} alt="profile image" />
+            <AvatarFallback>
+              {user.name.charAt(0).toLocaleUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        ) : (
+          <Avatar>
+            <AvatarFallback>
+              <UserRoundCog />
+            </AvatarFallback>
+          </Avatar>
+        )}
       </SheetTrigger>
       <SheetContent>
         <SheetHeader>
