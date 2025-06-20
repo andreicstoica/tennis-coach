@@ -14,6 +14,8 @@ type PracticeUiProps = {
   game: string;
 };
 
+const pStyle = "leading-7 [&:not(:first-child)]:mt-6";
+
 export const PracticeUi = ({ warmup, drill, game }: PracticeUiProps) => {
   return (
     <Expandable
@@ -30,13 +32,13 @@ export const PracticeUi = ({ warmup, drill, game }: PracticeUiProps) => {
             expandDelay={200}
             collapseDelay={500}
           >
-            <ExpandableCardHeader className="font-bold">
+            <ExpandableCardHeader className="bg-white font-bold dark:bg-black">
               {!isExpanded && <Badge className="mr-3">Expand to see ;)</Badge>}
             </ExpandableCardHeader>
-            <ExpandableCardContent>
+            <ExpandableCardContent className="bg-white dark:bg-black">
               <ExpandableContent preset="blur-md" stagger staggerChildren={0.2}>
                 <Badge>Warmup</Badge>
-                <p>{warmup}</p>
+                <p className={pStyle}>{warmup}</p>
               </ExpandableContent>
               <ExpandableContent preset="blur-md" stagger staggerChildren={0.2}>
                 <ExpandableContent
@@ -45,7 +47,7 @@ export const PracticeUi = ({ warmup, drill, game }: PracticeUiProps) => {
                   staggerChildren={0.2}
                 >
                   <Badge>Drill</Badge>
-                  <p>{drill}</p>
+                  <p className={pStyle}>{drill}</p>
                 </ExpandableContent>
                 <ExpandableContent
                   preset="blur-md"
@@ -53,7 +55,7 @@ export const PracticeUi = ({ warmup, drill, game }: PracticeUiProps) => {
                   staggerChildren={0.2}
                 >
                   <Badge>Game</Badge>
-                  <p>{game}</p>
+                  <p className={pStyle}>{game}</p>
                 </ExpandableContent>
               </ExpandableContent>
               {isExpanded && <></>}
