@@ -29,7 +29,6 @@ export function PreviousPracticeSessions() {
 
   return (
     <div className="grid w-full grid-cols-1 justify-items-start gap-4 sm:grid-cols-2 md:grid-cols-3">
-      {" "}
       {/* Adjusted classes */}{" "}
       {previousPracticeSessions.map((session) => (
         // <PracticeSessionCard key={session.id} session={session} />

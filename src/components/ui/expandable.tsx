@@ -17,8 +17,9 @@ import React, {
   useState,
 } from "react";
 import useMeasure from "react-use-measure";
-
+import { useTheme } from "next-themes";
 import { cn } from "~/lib/utils";
+import clsx from "clsx";
 
 const springConfig = { stiffness: 200, damping: 20, bounce: 0.2 };
 
@@ -335,15 +336,7 @@ const ExpandableContent = React.forwardRef<
   },
 );
 
-interface ExpandableCardProps {
-  children: ReactNode;
-  className?: string;
-  collapsedSize?: { width?: number; height?: number }; // Size when collapsed
-  expandedSize?: { width?: number; height?: number }; // Size when expanded
-  hoverToExpand?: boolean; // Whether to expand on hover
-  expandDelay?: number; // Delay before expanding
-  collapseDelay?: number; // Delay before collapsing
-}
+// In your ExpandableCard component (./ui/expandable.tsx)
 
 const ExpandableCard = React.forwardRef<HTMLDivElement, ExpandableCardProps>(
   (
@@ -359,87 +352,101 @@ const ExpandableCard = React.forwardRef<HTMLDivElement, ExpandableCardProps>(
     },
     ref,
   ) => {
-    // Get the expansion state and toggle function from the ExpandableContext
     const { isExpanded, toggleExpand, expandDirection } = useExpandable();
 
-    // Use useMeasure hook to get the dimensions of the content
-    const [measureRef, { width, height }] = useMeasure();
+    const [
+      measureRef,
+      { width: measuredContentWidth, height: measuredContentHeight },
+    ] = useMeasure();
 
-    // Create motion values for width and height
+    // Re-introduce these declarations! This was the source of the "not defined" error.
     const animatedWidth = useMotionValue(collapsedSize.width || 0);
-    const animatedHeight = useMotionValue(collapsedSize.height || 0);
+    const animatedHeight = useMotionValue(collapsedSize.height || 0); // Keep this for now, even if not directly styling 'height'
 
-    // Apply spring animation to the motion values
     const smoothWidth = useSpring(animatedWidth, springConfig);
-    const smoothHeight = useSpring(animatedHeight, springConfig);
+    const smoothHeight = useSpring(animatedHeight, springConfig); // Keep this too
 
-    // Effect to update the animated dimensions when expansion state changes
     useEffect(() => {
       if (isExpanded) {
-        animatedWidth.set(expandedSize.width || width);
-        animatedHeight.set(expandedSize.height || height);
+        animatedWidth.set(expandedSize.width || measuredContentWidth);
+        // Consider if animatedHeight needs to be updated here for the ExpandableContent animations
+        animatedHeight.set(expandedSize.height || measuredContentHeight);
       } else {
-        animatedWidth.set(collapsedSize.width || width);
-        animatedHeight.set(collapsedSize.height || height);
+        animatedWidth.set(collapsedSize.width || measuredContentWidth);
+        animatedHeight.set(collapsedSize.height || measuredContentHeight);
       }
     }, [
       isExpanded,
       collapsedSize,
       expandedSize,
-      width,
-      height,
+      measuredContentWidth,
+      measuredContentHeight,
       animatedWidth,
       animatedHeight,
     ]);
 
-    // Handler for hover start event
     const handleHover = () => {
       if (hoverToExpand && !isExpanded) {
         setTimeout(toggleExpand, expandDelay);
       }
     };
 
-    // Handler for hover end event
     const handleHoverEnd = () => {
       if (hoverToExpand && isExpanded) {
         setTimeout(toggleExpand, collapseDelay);
       }
     };
 
+    const systemTheme = useTheme().systemTheme;
+
     return (
       <motion.div
         ref={ref}
         className={cn("cursor-pointer", className)}
+        layout
         style={{
-          // Set width and height based on expansion direction
-          width:
-            expandDirection === "vertical" ? collapsedSize.width : smoothWidth,
-          height:
-            expandDirection === "horizontal"
-              ? collapsedSize.height
-              : smoothHeight,
+          width: smoothWidth, // <-- This 'smoothWidth' should now be defined!
         }}
-        transition={springConfig}
+        transition={{ layout: { duration: 0.3, ease: "easeOut" } }}
         onHoverStart={handleHover}
         onHoverEnd={handleHoverEnd}
         {...props}
       >
         <div
-          className={cn(
-            "grid grid-cols-1 rounded-lg sm:rounded-xl md:rounded-[2rem]",
-            "shadow-[inset_0_0_1px_1px_#ffffff4d] sm:shadow-[inset_0_0_2px_1px_#ffffff4d]",
-            "ring-1 ring-black/5",
-            "max-w-[calc(100%-1rem)] sm:max-w-[calc(100%-2rem)] md:max-w-[calc(100%-4rem)]",
-            "w-full",
-            "transition-all duration-300 ease-in-out",
+          className={clsx(
+            systemTheme === "dark"
+              ? cn(
+                  "grid grid-cols-1 rounded-lg sm:rounded-xl md:rounded-[2rem]",
+                  "shadow-[inset_0_0_2px_2px_#ffffff4d] sm:shadow-[inset_0_0_4px_2px_#ffffff4d]",
+                  "ring-1 ring-white/5",
+                  "w-full",
+                  "transition-all duration-300 ease-in-out",
+                )
+              : cn(
+                  "grid grid-cols-1 rounded-lg sm:rounded-xl md:rounded-[2rem]",
+                  "shadow-[inset_0_0_1px_1px_#ffffff4d] sm:shadow-[inset_0_0_2px_1px_#ffffff4d]",
+                  "ring-1 ring-black/5",
+                  "w-full",
+                  "transition-all duration-300 ease-in-out",
+                ),
           )}
         >
-          {/* Nested divs purely for styling and layout (the shadow ring around the card) */}
-          <div className="grid grid-cols-1 rounded-lg p-1 shadow-md shadow-black/5 sm:rounded-xl sm:p-1.5 md:rounded-[2rem] md:p-2">
-            <div className="rounded-md bg-white p-2 shadow-xl ring-1 ring-black/5 sm:rounded-lg sm:p-3 md:rounded-3xl md:p-4">
-              <div className="h-full w-full overflow-hidden">
-                {/* Ref for measuring content dimensions (so we can let framer know to animate into the dimensions) */}
-                <div ref={measureRef} className="flex h-full flex-col">
+          <div
+            className={clsx(
+              systemTheme === "dark"
+                ? "grid grid-cols-1 rounded-lg p-1 shadow-md shadow-white/10 sm:rounded-xl sm:p-1.5 md:rounded-[2rem] md:p-2"
+                : "grid grid-cols-1 rounded-lg p-1 shadow-md shadow-black/5 sm:rounded-xl sm:p-1.5 md:rounded-[2rem] md:p-2",
+            )}
+          >
+            <div
+              className={clsx(
+                systemTheme === "dark"
+                  ? "rounded-md bg-zinc-900 p-2 shadow-xl ring-1 ring-white/5 sm:rounded-lg sm:p-3 md:rounded-3xl md:p-4"
+                  : "rounded-md bg-white p-2 shadow-xl ring-1 ring-black/5 sm:rounded-lg sm:p-3 md:rounded-3xl md:p-4",
+              )}
+            >
+              <div className="w-full">
+                <div ref={measureRef} className="flex flex-col">
                   {children}
                 </div>
               </div>
