@@ -1,7 +1,7 @@
 "use client";
 
 import { api } from "~/trpc/react";
-import { PracticeSessionCard } from "./practice-session-card";
+import { PracticeSummaryExpand } from "~/components/practice-summary-expand";
 
 export function PreviousPracticeSessions() {
   const { data, isLoading, error } = api.practiceSession.list.useQuery();
@@ -28,10 +28,12 @@ export function PreviousPracticeSessions() {
   }
 
   return (
-    <>
+    <div className="grid w-full grid-cols-1 justify-items-start gap-4 sm:grid-cols-2 md:grid-cols-3">
+      {/* Adjusted classes */}{" "}
       {previousPracticeSessions.map((session) => (
-        <PracticeSessionCard key={session.id} session={session} />
+        // <PracticeSessionCard key={session.id} session={session} />
+        <PracticeSummaryExpand key={session.id} session={session} />
       ))}
-    </>
+    </div>
   );
 }
