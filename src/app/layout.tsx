@@ -1,5 +1,6 @@
 import "~/styles/globals.css";
 
+import { Analytics } from "@vercel/analytics/next";
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "~/components/theme-provider";
@@ -29,7 +30,10 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <TRPCReactProvider>
             <GlobalHeader />
-            <main className="h-full flex-1 overflow-auto">{children}</main>
+            <main className="h-full flex-1 overflow-auto">
+              {children}
+              <Analytics />
+            </main>
             <Toaster />
           </TRPCReactProvider>
         </ThemeProvider>
