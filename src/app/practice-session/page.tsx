@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { BouncingBallAnimation } from "~/components/bouncing-ball";
 import NewPracticeSessionForm from "~/components/new-practice-session-form";
 import { useSession } from "~/lib/auth-client";
@@ -12,9 +12,12 @@ export default function NewPracticeSession() {
   const { data: session } = useSession();
   const router = useRouter();
 
-  if (!session?.user.id) {
-    router.push("/");
-  }
+  // using use effect to redirect once (instead of get like 5-10 times before router can push)
+  useEffect(() => {
+    if (!session?.user.id) {
+      router.push("/");
+    }
+  }, [session, router]);
 
   return (
     <div className="flex min-h-full flex-col items-center justify-center">
