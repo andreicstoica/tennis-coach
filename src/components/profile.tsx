@@ -42,7 +42,7 @@ export function ProfileSheet({ user }: { user: User }) {
         ) : (
           <Avatar>
             <AvatarFallback>
-              <UserRoundCog />
+              <UserRoundCog className="size-4.5" />
             </AvatarFallback>
           </Avatar>
         )}
