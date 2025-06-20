@@ -34,6 +34,11 @@ export function Chat({ chatId }: { chatId: string }) {
 
   const addPlanMutation = api.practiceSession.addPlan.useMutation();
 
+  const practiceSessionRef = useRef(practiceSession);
+  useEffect(() => {
+    practiceSessionRef.current = practiceSession;
+  }, [practiceSession]);
+
   const {
     messages,
     input,
@@ -66,7 +71,7 @@ export function Chat({ chatId }: { chatId: string }) {
           part.toolInvocation.toolName === "createPractice",
       );
 
-      if (hasCompletedTool && practiceSession?.id) {
+      if (hasCompletedTool && practiceSessionRef.current?.id) {
         const toolPart = message.parts?.find(
           (part) =>
             part.type === "tool-invocation" &&
@@ -78,7 +83,7 @@ export function Chat({ chatId }: { chatId: string }) {
           toolPart.toolInvocation.state === "result"
         ) {
           addPlanMutation.mutate({
-            practiceSessionId: practiceSession.id,
+            practiceSessionId: practiceSessionRef.current.id,
             plan: toolPart.toolInvocation.result as string,
           });
           console.log("Saved plan to db");
