@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { UserRoundCog } from "lucide-react";
 import { Button } from "./ui/button";
 import { useSession } from "~/lib/auth-client";
 import { Separator } from "./ui/separator";
+import { ProfileSheet } from "~/components/profile";
 
 export function GlobalHeader() {
   const { data: session } = useSession();
@@ -18,14 +18,7 @@ export function GlobalHeader() {
 
         <div className="flex items-center space-x-4">
           {session ? (
-            <>
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/profile">
-                  <UserRoundCog className="h-10 w-10" />
-                  <span className="sr-only">Settings</span>
-                </Link>
-              </Button>
-            </>
+            <ProfileSheet user={session.user} />
           ) : (
             <Button variant="outline" size="sm" asChild>
               <Link href="/signin">Sign in</Link>
