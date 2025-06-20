@@ -35,11 +35,9 @@ export const PracticeSummaryExpand = ({
 
   return (
     <Expandable expandDirection="both" expandBehavior="push">
-      <ExpandableTrigger className="w-full">
+      <ExpandableTrigger>
         <ExpandableCard
           className="w-full items-start justify-start"
-          collapsedSize={{ width: 350, height: 125 }}
-          expandedSize={{ width: 400 }}
           hoverToExpand={false}
           expandDelay={100}
           collapseDelay={400}
