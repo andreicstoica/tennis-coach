@@ -116,8 +116,8 @@ export default function NewPracticeSessionForm({
         </Form>
       </CardContent>
 
-      <CardFooter className="flex flex-col items-start">
-        <>Next, we&apos;ll setup a practice session tailored to you!</>
+      <CardFooter className="flex flex-col items-start text-sm">
+        <>Next, we&apos;ll make a practice session tailored to you 👊</>
       </CardFooter>
     </Card>
   );
