@@ -32,9 +32,9 @@ export const practiceSessionRouter = createTRPCRouter({
         where: eq(practiceSessions.chatId, input.chatId),
       });
 
-      if (!practiceSession || practiceSession.userId !== ctx.user.id) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
-      }
+      // if (!practiceSession || practiceSession.userId !== ctx.user.id) {
+      //   throw new TRPCError({ code: 'UNAUTHORIZED' });
+      // }
 
       return practiceSession;
     }),
