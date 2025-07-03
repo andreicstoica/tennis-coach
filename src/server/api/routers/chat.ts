@@ -24,24 +24,17 @@ export const chatRouter = createTRPCRouter({
         .query(async ({ ctx, input }) => {
             const chat = await ctx.db.query.chats.findFirst({
                 where: eq(chats.id, input.chatId),
-                columns: {
-                    id: true,
-                    userId: true,
-                    name: true,
-                    createdAt: true,
-                    updatedAt: true,
-                    messages: true,
-                }
             });
 
             console.log('chat.get -> DB result:', chat);
 
+            // check if chat exists
             if (!chat) {
                 console.log('chat.get -> throwing NOT_FOUND');
                 throw new TRPCError({ code: 'NOT_FOUND', message: 'Chat not found' });
             }
 
-            // check if createdAt is defined
+            // check if createdAt
             if (!chat.createdAt) {
                 throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Chat missing createdAt' });
             }
@@ -69,7 +62,7 @@ export const chatRouter = createTRPCRouter({
                 name: chat.name,
                 createdAt: chat.createdAt.toISOString(),
                 updatedAt: chat.updatedAt ? chat.updatedAt.toISOString() : null,
-                messages,
+                messages: chat.messages as Message[],
             };
         }),
 
