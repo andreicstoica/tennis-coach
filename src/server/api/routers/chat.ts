@@ -8,45 +8,37 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { chats, practiceSessions } from "~/server/db/schema";
 import { type Message } from 'ai';
 
+const ChatOutputSchema = z.object({
+    id: z.string(),
+    userId: z.string().nullable(),
+    name: z.string().nullable(),
+    createdAt: z.string().nullable(),
+    updatedAt: z.string().nullable(),
+    messages: z.array(z.custom<Message>()).nullable(),
+});
+
 // chat routes
 export const chatRouter = createTRPCRouter({
 
     get: protectedProcedure
         .input(z.object({ chatId: z.string() }))
-        .output(z.object({
-            id: z.string(),
-            userId: z.string(),
-            name: z.string(),
-            createdAt: z.string(),
-            updatedAt: z.string(),
-            messages: z.array(z.custom<Message>())
-        }))
+        .output(ChatOutputSchema)
         .query(async ({ ctx, input }) => {
-            const chatId = input.chatId;
-            console.log('chat.get input:', input);
-            if (!chatId) throw new TRPCError({ code: "BAD_REQUEST", message: "chatId required" });
-            try {
-                const foundChat = await ctx.db.query.chats.findFirst({
-                    where: eq(chats.id, chatId)
-                });
+            const chat = await ctx.db.query.chats.findFirst({
+                where: eq(chats.id, input.chatId),
+                // If you need messages from another table add a join or Drizzle `with`.
+            });
 
-                if (!foundChat) {
-                    throw new TRPCError({ code: "NOT_FOUND", message: "Chat not found" });
-                }
-
-                // fix types: convert dates to ISO string, nulls to empty string, messages to array
-                return {
-                    id: foundChat.id,
-                    userId: foundChat.userId ?? "",
-                    name: foundChat.name ?? "",
-                    createdAt: foundChat.createdAt ? foundChat.createdAt.toISOString() : "",
-                    updatedAt: foundChat.updatedAt ? foundChat.updatedAt.toISOString() : "",
-                    messages: Array.isArray(foundChat.messages) ? foundChat.messages : [],
-                }
-            } catch (e) {
-                console.error('chat.get error:', e);
-                throw e;
+            if (!chat) {
+                throw new TRPCError({ code: 'NOT_FOUND', message: 'Chat not found' });
             }
+
+            return {
+                ...chat,
+                createdAt: chat.createdAt?.toISOString() ?? null,
+                updatedAt: chat.updatedAt?.toISOString() ?? null,
+                messages: Array.isArray(chat.messages) ? chat.messages : [],
+            };
         }),
 
     create: protectedProcedure
