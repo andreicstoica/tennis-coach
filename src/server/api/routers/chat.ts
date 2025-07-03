@@ -2,16 +2,25 @@ import { TRPCError } from '@trpc/server';
 import { eq, and } from 'drizzle-orm';
 import z from 'zod';
 import { createChat } from '~/lib/ai-functions';
+import { getPracticeSessionById } from '~/server/api/helpers/practiceSession';
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { chats, practiceSessions } from "~/server/db/schema";
 import { type Message } from 'ai';
-import { getPracticeSessionById } from '../helpers/practiceSession';
 
+// chat routes
 export const chatRouter = createTRPCRouter({
 
     get: protectedProcedure
         .input(z.object({ chatId: z.string() }))
+        .output(z.object({
+            id: z.string(),
+            userId: z.string(),
+            name: z.string(),
+            createdAt: z.string(),
+            updatedAt: z.string(),
+            messages: z.array(z.custom<Message>())
+        }))
         .query(async ({ ctx, input }) => {
             const chatId = input.chatId;
             console.log('chat.get input:', input);
@@ -19,13 +28,21 @@ export const chatRouter = createTRPCRouter({
             try {
                 const foundChat = await ctx.db.query.chats.findFirst({
                     where: eq(chats.id, chatId)
-                })
+                });
 
-                // if (!foundChat || foundChat.userId !== ctx.user.id) {
-                //     throw new TRPCError({ code: "UNAUTHORIZED" })
-                // }
+                if (!foundChat) {
+                    throw new TRPCError({ code: "NOT_FOUND", message: "Chat not found" });
+                }
 
-                return foundChat
+                // fix types: convert dates to ISO string, nulls to empty string, messages to array
+                return {
+                    id: foundChat.id,
+                    userId: foundChat.userId ?? "",
+                    name: foundChat.name ?? "",
+                    createdAt: foundChat.createdAt ? foundChat.createdAt.toISOString() : "",
+                    updatedAt: foundChat.updatedAt ? foundChat.updatedAt.toISOString() : "",
+                    messages: Array.isArray(foundChat.messages) ? foundChat.messages : [],
+                }
             } catch (e) {
                 console.error('chat.get error:', e);
                 throw e;
@@ -77,9 +94,9 @@ export const chatRouter = createTRPCRouter({
                 where: eq(chats.id, input.chatId)
             });
 
-            // if (!foundChat || foundChat.userId !== ctx.user.id) {
-            //     throw new TRPCError({ code: "UNAUTHORIZED" });
-            // }
+            if (!foundChat || foundChat.userId !== ctx.user.id) {
+                throw new TRPCError({ code: "UNAUTHORIZED" });
+            }
 
             await ctx.db
                 .update(chats)
