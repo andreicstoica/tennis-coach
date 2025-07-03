@@ -20,7 +20,11 @@ export function PreviousPracticeSessions() {
     previousPracticeSessions === undefined ||
     previousPracticeSessions.length === 0
   ) {
-    return <div>loading...</div>;
+    return (
+      <div className="ml-1.5">
+        Your practice session summaries will appear here.
+      </div>
+    );
   }
 
   if (previousPracticeSessions.length > 6) {
