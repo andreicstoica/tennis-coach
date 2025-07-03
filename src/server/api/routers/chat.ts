@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { eq, and } from 'drizzle-orm';
-import { z } from 'zod';
+import z from 'zod';
 import { createChat } from '~/lib/ai-functions';
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
@@ -13,15 +13,21 @@ export const chatRouter = createTRPCRouter({
     get: protectedProcedure
         .input(z.object({ chatId: z.string() }))
         .query(async ({ ctx, input }) => {
-            const foundChat = await ctx.db.query.chats.findFirst({
-                where: eq(chats.id, input.chatId)
-            })
+            console.log('chat.get input:', input);
+            try {
+                const foundChat = await ctx.db.query.chats.findFirst({
+                    where: eq(chats.id, input.chatId)
+                })
 
-            // if (!foundChat || foundChat.userId !== ctx.user.id) {
-            //     throw new TRPCError({ code: "UNAUTHORIZED" })
-            // }
+                // if (!foundChat || foundChat.userId !== ctx.user.id) {
+                //     throw new TRPCError({ code: "UNAUTHORIZED" })
+                // }
 
-            return foundChat
+                return foundChat
+            } catch (e) {
+                console.error('chat.get error:', e);
+                throw e;
+            }
         }),
 
     create: protectedProcedure
