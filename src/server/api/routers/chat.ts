@@ -13,10 +13,12 @@ export const chatRouter = createTRPCRouter({
     get: protectedProcedure
         .input(z.object({ chatId: z.string() }))
         .query(async ({ ctx, input }) => {
+            const chatId = input.chatId;
             console.log('chat.get input:', input);
+            if (!chatId) throw new TRPCError({ code: "BAD_REQUEST", message: "chatId required" });
             try {
                 const foundChat = await ctx.db.query.chats.findFirst({
-                    where: eq(chats.id, input.chatId)
+                    where: eq(chats.id, chatId)
                 })
 
                 // if (!foundChat || foundChat.userId !== ctx.user.id) {
