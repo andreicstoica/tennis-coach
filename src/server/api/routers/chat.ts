@@ -26,8 +26,9 @@ export const chatRouter = createTRPCRouter({
         .query(async ({ ctx, input }) => {
             const chat = await ctx.db.query.chats.findFirst({
                 where: eq(chats.id, input.chatId),
-                // If you need messages from another table add a join or Drizzle `with`.
             });
+
+            console.log('chat.get -> chat row:', chat);
 
             if (!chat) {
                 throw new TRPCError({ code: 'NOT_FOUND', message: 'Chat not found' });
