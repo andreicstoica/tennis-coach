@@ -10,35 +10,66 @@ import { type Message } from 'ai';
 
 const ChatOutputSchema = z.object({
     id: z.string(),
-    userId: z.string().nullable(),
-    name: z.string().nullable(),
-    createdAt: z.string().nullable(),
+    userId: z.string(),
+    name: z.string(),
+    createdAt: z.string(),
     updatedAt: z.string().nullable(),
     messages: z.array(z.custom<Message>()).nullable(),
 });
 
-// chat routes
 export const chatRouter = createTRPCRouter({
-
     get: protectedProcedure
         .input(z.object({ chatId: z.string() }))
         .output(ChatOutputSchema)
         .query(async ({ ctx, input }) => {
             const chat = await ctx.db.query.chats.findFirst({
                 where: eq(chats.id, input.chatId),
+                columns: {
+                    id: true,
+                    userId: true,
+                    name: true,
+                    createdAt: true,
+                    updatedAt: true,
+                    messages: true,
+                }
             });
 
-            console.log('chat.get -> chat row:', chat);
+            console.log('chat.get -> DB result:', chat);
 
             if (!chat) {
+                console.log('chat.get -> throwing NOT_FOUND');
                 throw new TRPCError({ code: 'NOT_FOUND', message: 'Chat not found' });
             }
 
+            // check if createdAt is defined
+            if (!chat.createdAt) {
+                throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Chat missing createdAt' });
+            }
+
+            // userId must be string, not null
+            if (!chat.userId) {
+                throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Chat missing userId' });
+            }
+
+            // messages must be Message[] or null
+            let messages: Message[] | null = null;
+            if (Array.isArray(chat.messages)) {
+                messages = chat.messages as Message[];
+            } else if (chat.messages === null || chat.messages === undefined) {
+                messages = null;
+            } else {
+                // If messages is not an array or null, treat as error
+                throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Chat messages malformed' });
+            }
+
+            console.log('chat.get -> returning chat');
             return {
-                ...chat,
-                createdAt: chat.createdAt?.toISOString() ?? null,
-                updatedAt: chat.updatedAt?.toISOString() ?? null,
-                messages: Array.isArray(chat.messages) ? chat.messages : [],
+                id: chat.id,
+                userId: chat.userId,
+                name: chat.name,
+                createdAt: chat.createdAt.toISOString(),
+                updatedAt: chat.updatedAt ? chat.updatedAt.toISOString() : null,
+                messages,
             };
         }),
 
