@@ -50,6 +50,13 @@
       "when": 1751656119463,
       "tag": "0006_amazing_skaar",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1751656767931,
+      "tag": "0007_chemical_green_goblin",
+      "breakpoints": true
     }
   ]
 }
