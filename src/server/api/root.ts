@@ -1,6 +1,7 @@
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 import { practiceSessionRouter } from "~/server/api/routers/practice-session";
 import { chatRouter } from "./routers/chat";
+import { courtBadgesRouter } from "./routers/court-badges";
 
 /**
  * This is the primary router for your server.
@@ -10,6 +11,7 @@ import { chatRouter } from "./routers/chat";
 export const appRouter = createTRPCRouter({
   practiceSession: practiceSessionRouter,
   chat: chatRouter,
+  courtBadges: courtBadgesRouter,
 });
 
 // export type definition of API
