@@ -57,30 +57,40 @@ export async function POST(req: Request): Promise<Response> {
         createPractice: tools.practiceTool,
       },
       onFinish: async (result) => {
-        // Check if createPractice tool was called and save the plan
         // Look for tool result in the response messages
         const toolResultMessage = result.response.messages.find(
           (msg) => msg.role === "tool"
         );
 
-        if (toolResultMessage && toolResultMessage.content) {
+        if (toolResultMessage?.content) {
           try {
-            // Convert the tool result content to a string for database storage
-            const planContent = JSON.stringify(toolResultMessage.content);
+            // Extract the actual practice plan from the tool result
+            const toolResult = toolResultMessage.content;
 
-            // Save the practice plan to the database using tRPC procedure
+            // If it's an array, get the first item (tool result format)
+            const actualResult = Array.isArray(toolResult) ? toolResult[0] : toolResult;
+
+            // Extract the result field if it exists (contains the actual JSON)
+            const practiceContent = actualResult?.result || actualResult;
+
+            // Parse and re-stringify to ensure clean JSON
+            const practiceData = typeof practiceContent === 'string'
+              ? JSON.parse(practiceContent)
+              : practiceContent;
+
+            // Save only the clean practice plan JSON
             await api.practiceSession.addPlan({
               practiceSessionId: practiceSession.id,
-              plan: planContent,
+              plan: JSON.stringify(practiceData), // Clean JSON: {warmup, drill, game}
             });
 
-            console.log(`[API Route] Saved practice plan to session ${practiceSession.id}`);
+            console.log(`[API Route] Saved clean practice plan to session ${practiceSession.id}`);
           } catch (error) {
             console.error("[API Route] Failed to save practice plan:", error);
           }
         }
 
-        // Save updated messages back to database onFinish
+        // Save updated messages back to database
         const updatedMessages = [
           ...allMessages,
           {
