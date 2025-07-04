@@ -22,22 +22,8 @@ type PracticeType = {
 export function Chat({ chatId }: { chatId: string }) {
   const { data: chatData } = api.chat.get.useQuery({ chatId });
 
-  // Get the practice session linked to this chat
-  const { data: practiceSession } = api.practiceSession.getByChatId.useQuery(
-    {
-      chatId,
-    },
-    {
-      enabled: !!chatId,
-    },
-  );
-
-  const addPlanMutation = api.practiceSession.addPlan.useMutation();
-
-  const practiceSessionRef = useRef(practiceSession);
-  useEffect(() => {
-    practiceSessionRef.current = practiceSession;
-  }, [practiceSession]);
+  // Removed: practiceSession query, addPlanMutation, and practiceSessionRef
+  // Server-side handles all plan saving now
 
   const {
     messages,
@@ -63,33 +49,7 @@ export function Chat({ chatId }: { chatId: string }) {
         console.log("[Chat] Tool call started - generating practice plan...");
       }
     },
-    onFinish: (message) => {
-      const hasCompletedTool = message.parts?.some(
-        (part) =>
-          part.type === "tool-invocation" &&
-          part.toolInvocation.state === "result" &&
-          part.toolInvocation.toolName === "createPractice",
-      );
-
-      if (hasCompletedTool && practiceSessionRef.current?.id) {
-        const toolPart = message.parts?.find(
-          (part) =>
-            part.type === "tool-invocation" &&
-            part.toolInvocation.toolName === "createPractice",
-        );
-
-        if (
-          toolPart?.type === "tool-invocation" &&
-          toolPart.toolInvocation.state === "result"
-        ) {
-          addPlanMutation.mutate({
-            practiceSessionId: practiceSessionRef.current.id,
-            plan: toolPart.toolInvocation.result as string,
-          });
-          console.log("Saved plan to db");
-        }
-      }
-    },
+    // Removed: onFinish callback - server handles saving now
     onError: (error) => {
       console.error("client side ai stream error:", error);
     },

@@ -44,14 +44,8 @@ export const chatRouter = createTRPCRouter({
                 throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Chat missing userId' });
             }
 
-            // messages must be Message[] or null
-            let messages: Message[] | null = null;
-            if (Array.isArray(chat.messages)) {
-                messages = chat.messages as Message[];
-            } else if (chat.messages === null || chat.messages === undefined) {
-                messages = null;
-            } else {
-                // If messages is not an array or null, treat as error
+            // messages must be Message[]
+            if (!Array.isArray(chat.messages)) {
                 throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Chat messages malformed' });
             }
 
