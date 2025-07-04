@@ -9,6 +9,7 @@ import {
   integer,
   timestamp,
   boolean,
+  decimal,
 } from "drizzle-orm/pg-core";
 import { type Message } from "ai";
 /**
@@ -85,6 +86,8 @@ export const practiceSessions = pgTable("practice-sessions", {
   id: serial("id").primaryKey(),
   userId: text("user_id").references(() => user.id),
   focusArea: varchar("focus_area", { length: 50 }).notNull(),
+  latitude: decimal("latitude", { precision: 9, scale: 6 }),
+  longitude: decimal("longitude", { precision: 9, scale: 6 }),
   plan: text("plan"), // JSON or markdown of warmup/drill/game
   chatId: varchar({ length: 256 }).references(() => chats.id),
   createdAt: timestamp("created_at").defaultNow(),

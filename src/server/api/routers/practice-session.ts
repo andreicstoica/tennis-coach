@@ -56,6 +56,29 @@ export const practiceSessionRouter = createTRPCRouter({
       return newPracticeSession;
     }),
 
+  createWithLocation: protectedProcedure
+    .input(z.object({
+      focus: z.string(),
+      latitude: z.number(),
+      longitude: z.number(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { focus, latitude, longitude } = input;
+
+      const newPracticeSession = ctx.db
+        .insert(practiceSessions)
+        .values({
+          focusArea: focus,
+          userId: ctx.user.id,
+          latitude: latitude?.toString(),
+          longitude: longitude?.toString(),
+        })
+        .returning()
+        .execute();
+
+      return newPracticeSession;
+    }),
+
   addPlan: protectedProcedure
     .input(z.object({ plan: z.string(), practiceSessionId: z.number() }))
     .mutation(async ({ ctx, input }) => {
