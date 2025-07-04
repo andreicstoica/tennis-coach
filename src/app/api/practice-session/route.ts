@@ -57,13 +57,17 @@ export async function POST(req: Request): Promise<Response> {
         createPractice: tools.practiceTool,
       },
       onFinish: async (result) => {
-        // Look for tool result in the response messages
+        console.log("[API Route] onFinish called, processing results...");
+
+        // 1. SAVE PRACTICE PLAN - Use the working approach from response.messages
         const toolResultMessage = result.response.messages.find(
           (msg) => msg.role === "tool"
         );
 
         if (toolResultMessage?.content) {
           try {
+            console.log("[API Route] Found tool result message:", toolResultMessage);
+
             // Extract the actual practice plan from the tool result
             const toolResult = toolResultMessage.content;
 
@@ -90,7 +94,7 @@ export async function POST(req: Request): Promise<Response> {
           }
         }
 
-        // Save updated messages back to database
+        // 2. SAVE MESSAGES - Use the exact same approach as the working code
         const updatedMessages = [
           ...allMessages,
           {
@@ -108,6 +112,8 @@ export async function POST(req: Request): Promise<Response> {
             updatedAt: new Date(),
           })
           .where(eq(chats.id, id));
+
+        console.log(`[API Route] Saved complete message response to chat ${id}`);
       },
       onError: (error) => console.error("AI streaming error:", error),
     });
