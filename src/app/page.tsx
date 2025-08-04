@@ -48,7 +48,10 @@ export default function HomePage() {
         <CardHeader>
           <CardTitle>
             Welcome back,{" "}
-            {session.user.name.trim().split(" ")[0] ?? session.user.email}!
+            <span className="text-chart-2">
+              {session.user.name.trim().split(" ")[0] ?? session.user.email}
+            </span>
+            !
           </CardTitle>
           <CardDescription>
             Ready to improve your tennis game? Create a new practice session

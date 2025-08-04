@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { api } from "~/trpc/react";
 import { NotebookPracticeCard } from "~/components/notebook-practice-card";
 
@@ -203,21 +204,40 @@ export function PreviousPracticeSessions() {
 
       {/* Results */}
       {filteredSessions.length === 0 ? (
-        <div className="ml-1.5">
+        <motion.div
+          className="ml-1.5"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
           {hasFilters
             ? "No practice sessions found matching your filters."
             : "Your practice session summaries will appear here."}
-        </div>
+        </motion.div>
       ) : (
-        <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {filteredSessions.map((session, index) => (
-            <NotebookPracticeCard
-              key={session.id}
-              session={session}
-              index={index}
-            />
-          ))}
-        </div>
+        <motion.div
+          className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
+          layout
+        >
+          <AnimatePresence mode="popLayout">
+            {filteredSessions.map((session, index) => (
+              <motion.div
+                key={session.id}
+                layout
+                exit={{ opacity: 0 }}
+                transition={{
+                  layout: {
+                    duration: 0.3,
+                    ease: "easeInOut",
+                  },
+                  opacity: { duration: 0.2 },
+                }}
+              >
+                <NotebookPracticeCard session={session} index={index} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
       )}
     </div>
   );
