@@ -225,7 +225,7 @@ export function Chat({ chatId }: { chatId: string }) {
 
           {/* Render all messages normally */}
           {messages.map((message) =>
-            message.parts.map((part, i) => {
+            message.parts.map((part, _i) => {
               switch (part.type) {
                 case "text":
                   // Skip assistant messages that contain practice plans if we already rendered the plan UI
