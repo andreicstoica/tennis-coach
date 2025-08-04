@@ -42,7 +42,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex w-full flex-col items-center justify-start gap-10 p-4">
+    <div className="flex w-full flex-col items-center justify-start gap-10 p-10">
       {/* Top banner */}
       <Card className="w-1/3">
         <CardHeader>

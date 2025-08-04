@@ -34,8 +34,8 @@ export function PreviousPracticeSessions() {
     // Month filter (only applies if year is also selected)
     if (filters.month && filters.year) {
       filtered = filtered.filter((session) => {
-        const sessionMonth = session.createdAt?.getMonth() + 1; // getMonth() returns 0-11
-        return sessionMonth === filters.month;
+        const sessionMonth = session.createdAt?.getMonth(); // getMonth() returns 0-11
+        return sessionMonth !== undefined && sessionMonth + 1 === filters.month;
       });
     }
 
@@ -86,7 +86,10 @@ export function PreviousPracticeSessions() {
     { value: 12, label: "December" },
   ];
 
-  const handleFilterChange = (key: keyof FilterState, value: any) => {
+  const handleFilterChange = (
+    key: keyof FilterState,
+    value: string | number | undefined,
+  ) => {
     setFilters((prev) => ({
       ...prev,
       [key]: value === "" ? undefined : value,
@@ -99,7 +102,7 @@ export function PreviousPracticeSessions() {
     setFilters({ limit: 6 });
   };
 
-  const hasFilters = filters.year || filters.month || filters.focusSearch;
+  const hasFilters = filters.year ?? filters.month ?? filters.focusSearch;
 
   return (
     <div className="space-y-4">
@@ -112,7 +115,7 @@ export function PreviousPracticeSessions() {
               Year
             </label>
             <select
-              value={filters.year || ""}
+              value={filters.year ?? ""}
               onChange={(e) =>
                 handleFilterChange(
                   "year",
@@ -136,7 +139,7 @@ export function PreviousPracticeSessions() {
               Month
             </label>
             <select
-              value={filters.month || ""}
+              value={filters.month ?? ""}
               onChange={(e) =>
                 handleFilterChange(
                   "month",
@@ -163,7 +166,7 @@ export function PreviousPracticeSessions() {
             <input
               type="text"
               placeholder="e.g. backhand, serve..."
-              value={filters.focusSearch || ""}
+              value={filters.focusSearch ?? ""}
               onChange={(e) =>
                 handleFilterChange("focusSearch", e.target.value)
               }

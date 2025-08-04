@@ -26,7 +26,6 @@ interface NotebookPracticeCardProps {
 
 export const NotebookPracticeCard = ({
   session,
-  index,
 }: NotebookPracticeCardProps) => {
   const formattedDate = new Date(session.createdAt!).toLocaleDateString(
     "en-US",
