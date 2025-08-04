@@ -8,6 +8,7 @@ import { ThemeProvider } from "~/components/theme-provider";
 import { TRPCReactProvider } from "~/trpc/react";
 import { Toaster } from "~/components/ui/sonner";
 import { UserSettingsIcon } from "~/components/user-settings-icon";
+import { HomeButton } from "~/components/home-button";
 
 export const metadata: Metadata = {
   title: "Courtly",
@@ -30,6 +31,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <TRPCReactProvider>
             <UserSettingsIcon />
+            <HomeButton />
             <main className="h-full flex-1 overflow-auto">
               {children}
               <Analytics />
