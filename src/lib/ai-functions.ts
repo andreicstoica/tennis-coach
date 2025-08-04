@@ -1,37 +1,49 @@
 import { openai } from "@ai-sdk/openai";
-import { generateText, generateId, type Message } from "ai";
+import { generateObject, generateId, type Message } from "ai";
 import { db } from "~/server/db";
 import { chats } from "~/server/db/schema";
 import { practiceSessions } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
+import { PracticePlanSchema } from "./schemas/practice-plan";
 
 export const maxDuration = 10;
 
 export async function createPractice(focus: string): Promise<string> {
-  const prompt = `
-        You are a world-class tennis coach. Create a structured practice session for two competitive players (NTRP 4.0+) focused on: "${focus}".
+  const toolStart = Date.now();
+  console.log(
+    `[createPractice] Starting practice generation for focus: "${focus}"`,
+  );
 
-        Return **strictly valid JSON** with exactly three keys: "warmup", "drill", and "game". Each maps to a short paragraph (2-3 sentences) describing that part of the session.
+  const prompt = `You are a world-class tennis coach. Create a structured practice session for two competitive players (NTRP 4.0+) focused on: "${focus}".
 
-        Guidelines:
-        - All activities must be done between exactly two players. Avoid any drills requiring coach feeding, extra players, or ball baskets.
-        - Equipment should be minimal and common: racquets, balls, cones (or substitutes like water bottles), and court lines.
-        - "warmup" (~5-10 min): Active and tennis-specific (e.g. dynamic footwork, lateral movement, shadow swings, mini volleys). Avoid jogging laps. Don't say things like "do tennis focused stretches" instead, give an example of a stretch like that!
-        - "drill": A cooperative or semi-competitive rally-based exercise that directly targets "${focus}". Emphasize technique, timing, and consistency. Use proven formats from elite coaches (e.g. YouTube, Reddit, or classic coaching books). Make it fun and engaging for two players to do on their own.
-        - "game": A 10-20 minute competitive mini-game that builds on the previous drill. Use creative rules, constraints, or scoring tweaks to reinforce "${focus}" in match-like situations. It should be engaging, repeatable, and a fun finish to the session.
-        - Vary responses when called with the same "${focus}" more than once. Avoid identical outputs on consecutive runs.
+Guidelines:
+- All activities must be done between exactly two players. Avoid any drills requiring coach feeding, extra players, or ball baskets.
+- Equipment should be minimal and common: racquets, balls, cones (or substitutes like water bottles), and court lines.
+- "warmup" (~5-10 min): Active and tennis-specific (e.g. dynamic footwork, lateral movement, shadow swings, mini volleys). Avoid jogging laps. Give specific examples of stretches and movements.
+- "drill": A cooperative rally-based exercise that directly targets "${focus}". Emphasize technique, timing, and consistency. Use proven formats from elite coaches. Make it fun and engaging for two players to do on their own.
+- "game": A 10-20 minute competitive mini-game that builds on the previous drill. Use creative rules, constraints, or scoring tweaks to reinforce "${focus}" in match-like situations. It should be engaging, repeatable, and a fun finish to the session.
+- Vary responses when called with the same "${focus}" more than once. Avoid identical outputs on consecutive runs.`;
 
-        Output only valid JSON, like:
-        {"warmup":"...","drill":"...","game":"..."}
-    `.trim();
+  console.log(`[createPractice] Calling OpenAI API with structured output...`);
+  const apiStart = Date.now();
 
-  const result = await generateText({
-    model: openai("o4-mini-2025-04-16"),
-    prompt: prompt,
+  const result = await generateObject({
+    model: openai("gpt-4.1-mini"),
+    system: prompt,
+    prompt: `Create a practice session focused on: ${focus}`,
+    schema: PracticePlanSchema,
     temperature: 0.7,
   });
 
-  return result.text;
+  console.log(
+    `[createPractice] OpenAI API call completed in ${Date.now() - apiStart}ms`,
+  );
+  console.log(
+    `[createPractice] Total tool execution time: ${Date.now() - toolStart}ms`,
+  );
+  console.log(`[createPractice] Generated structured object:`, result.object);
+
+  return JSON.stringify(result.object);
 }
 
 export async function createChat({
