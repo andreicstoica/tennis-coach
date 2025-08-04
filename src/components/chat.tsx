@@ -12,18 +12,14 @@ import { ChatSkeleton } from "~/components/chat-skeleton";
 import { PracticeUi } from "~/components/practice-ui";
 import { THINKING_MESSAGES } from "./thinking-messages";
 import { motion } from "framer-motion";
-
-type PracticeType = {
-  warmup: string;
-  drill: string;
-  game: string;
-};
+import { type PracticePlan } from "~/lib/schemas/practice-plan";
 
 export function Chat({ chatId }: { chatId: string }) {
   const { data: chatData } = api.chat.get.useQuery({ chatId });
 
-  // Removed: practiceSession query, addPlanMutation, and practiceSessionRef
-  // Server-side handles all plan saving now
+  // Get practice session data to display practice plan
+  const { data: practiceSessionData } =
+    api.practiceSession.getByChatId.useQuery({ chatId }, { enabled: !!chatId });
 
   const {
     messages,
@@ -44,16 +40,19 @@ export function Chat({ chatId }: { chatId: string }) {
     generateId: createIdGenerator({
       size: 16,
     }),
-    onToolCall: ({ toolCall }) => {
-      if (toolCall.toolName === "createPractice") {
-        console.log("[Chat] Tool call started - generating practice plan...");
-      }
-    },
-    // Removed: onFinish callback - server handles saving now
+    // Server handles all message saving in onFinish callback
     onError: (error) => {
       console.error("client side ai stream error:", error);
     },
   });
+
+  // Add status change logging
+  useEffect(() => {
+    console.log(`[Chat] Status changed to: ${status}`);
+    if (status === "streaming") {
+      console.log(`[Chat] Streaming started at ${new Date().toISOString()}`);
+    }
+  }, [status]);
 
   // Reload for first practice session tool call
   const hasInitialReloadOccurred = useRef<Record<string, boolean>>({});
@@ -104,17 +103,23 @@ export function Chat({ chatId }: { chatId: string }) {
     }
 
     const initialUserMessageExists = chatData.messages[0]?.role === "user";
-    const hasToolResult = chatData.messages.some((msg) => {
-      return msg.parts?.some(
-        (part) =>
-          part.type === "tool-invocation" &&
-          part.toolInvocation.state === "result",
-      );
+    const hasAssistantResponse = chatData.messages.some(
+      (msg) => msg.role === "assistant",
+    );
+    const isNewChat = chatData.messages.length <= 1;
+
+    console.log("[Chat] Reload check:", {
+      initialUserMessageExists,
+      hasAssistantResponse,
+      isNewChat,
+      messageCount: chatData.messages.length,
+      chatId,
     });
 
-    if (initialUserMessageExists && !hasToolResult) {
+    // Only reload if it's a new chat with just the initial user message
+    if (initialUserMessageExists && !hasAssistantResponse && isNewChat) {
       console.log(
-        "[Chat] Initial user message found without complete tool response. Triggering AI reload.",
+        "[Chat] Initial user message found without assistant response. Triggering AI reload.",
       );
       hasInitialReloadOccurred.current[chatId] = true;
       void reload();
@@ -125,14 +130,26 @@ export function Chat({ chatId }: { chatId: string }) {
   const [currentThinkingMessageIndex, setCurrentThinkingMessageIndex] =
     useState(0);
 
-  const isThinking =
-    status === "streaming" ||
-    messages.some((m) =>
-      m.parts?.some(
-        (p) =>
-          p.type === "tool-invocation" && p.toolInvocation.state !== "result",
-      ),
+  // Check if we have any assistant messages with actual content
+  const hasAssistantResponse = messages.some(
+    (m) => m.role === "assistant" && m.content && m.content.trim().length > 0,
+  );
+
+  const isThinking = status === "streaming" && !hasAssistantResponse;
+
+  // Debug logging for thinking state
+  useEffect(() => {
+    console.log(
+      `[Chat] isThinking: ${isThinking}, status: ${status}, hasAssistantResponse: ${hasAssistantResponse}`,
     );
+    console.log(
+      `[Chat] Messages:`,
+      messages.map((m) => ({
+        role: m.role,
+        contentLength: m.content?.length || 0,
+      })),
+    );
+  }, [isThinking, status, hasAssistantResponse, messages]);
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null;
@@ -182,19 +199,44 @@ export function Chat({ chatId }: { chatId: string }) {
         )}
 
         <div className="space-y-4">
-          {messages.map((message) =>
-            message.parts.map((part, i) => {
-              switch (part.type) {
-                // normal messages
-                case "text":
-                  // Skip text if this message has a completed tool result
-                  const hasCompletedTool = message.parts.some(
-                    (p) =>
-                      p.type === "tool-invocation" &&
-                      p.toolInvocation.state === "result",
-                  );
+          {/* Render practice plan once at the top if it exists and we have assistant messages */}
+          {practiceSessionData?.plan &&
+            messages.some((m) => m.role === "assistant") && (
+              <div className="mb-4">
+                {(() => {
+                  try {
+                    const practice = JSON.parse(
+                      practiceSessionData.plan,
+                    ) as PracticePlan;
+                    return (
+                      <PracticeUi
+                        warmup={practice.warmup}
+                        drill={practice.drill}
+                        game={practice.game}
+                      />
+                    );
+                  } catch (error) {
+                    console.error("Failed to parse practice plan:", error);
+                    return null; // Failed to parse practice plan
+                  }
+                })()}
+              </div>
+            )}
 
-                  if (hasCompletedTool) return null;
+          {/* Render all messages normally */}
+          {messages.map((message) =>
+            message.parts.map((part, _i) => {
+              switch (part.type) {
+                case "text":
+                  // Skip assistant messages that contain practice plans if we already rendered the plan UI
+                  if (
+                    message.role === "assistant" &&
+                    practiceSessionData?.plan &&
+                    message.content.includes("Here's your") &&
+                    message.content.includes("practice session")
+                  ) {
+                    return null;
+                  }
 
                   return (
                     <Card
@@ -215,70 +257,33 @@ export function Chat({ chatId }: { chatId: string }) {
                       </CardContent>
                     </Card>
                   );
-
-                // practice gen tool
-                case "tool-invocation":
-                  const { state, toolName } = part.toolInvocation;
-
-                  if (state === "result" && toolName === "createPractice") {
-                    try {
-                      // Parse the tool result directly instead of message content
-                      const result = part.toolInvocation.result as string;
-                      const practice = JSON.parse(result) as PracticeType;
-                      return (
-                        <div key={`${message.id}-${i}`}>
-                          <PracticeUi
-                            warmup={practice.warmup}
-                            drill={practice.drill}
-                            game={practice.game}
-                          />
-                        </div>
-                      );
-                    } catch (err) {
-                      console.error("Failed to parse practice JSON:", err);
-                      return (
-                        <Card
-                          key={`${message.id}-${i}`}
-                          className="bg-muted mr-auto max-w-[80%]"
-                        >
-                          <CardContent className="p-4">
-                            <div className="text-sm text-red-500">
-                              Error: Invalid practice plan format
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    }
-                  } else {
-                    return (
-                      <Card
-                        key={`${message.id}-${i}`}
-                        className="bg-muted mr-auto max-w-[80%]"
-                      >
-                        <CardContent className="p-4">
-                          <div className="mb-1 text-sm font-medium">Coach</div>
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                              <Loader2 className="h-4 w-4 animate-spin" />{" "}
-                              <motion.div
-                                key={currentThinkingMessageIndex}
-                                className="text-sm"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ duration: 1.75 }}
-                              >
-                                {THINKING_MESSAGES[currentThinkingMessageIndex]}
-                              </motion.div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  }
                 default:
                   return null;
               }
             }),
+          )}
+
+          {/* Show loading state when streaming and no assistant messages yet */}
+          {isThinking && (
+            <Card className="bg-muted mr-auto max-w-[80%]">
+              <CardContent className="p-4">
+                <div className="mb-1 text-sm font-medium">Coach</div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <motion.div
+                      key={currentThinkingMessageIndex}
+                      className="text-sm"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 1.75 }}
+                    >
+                      {THINKING_MESSAGES[currentThinkingMessageIndex]}
+                    </motion.div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           <div ref={messagesEndRef} />

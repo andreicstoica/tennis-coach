@@ -9,7 +9,6 @@ import {
   integer,
   timestamp,
   boolean,
-  decimal,
   jsonb,
 } from "drizzle-orm/pg-core";
 import { type Message } from "ai";
@@ -120,7 +119,10 @@ export type CourtBadge = {
 
 export const courtBadges = pgTable("court-badges", {
   id: serial("id").primaryKey(),
-  userId: text("user_id").references(() => user.id, { onDelete: "cascade" }).notNull().unique(),
+  userId: text("user_id")
+    .references(() => user.id, { onDelete: "cascade" })
+    .notNull()
+    .unique(),
   courtBadges: jsonb("court_badges").$type<CourtBadge[]>().default([]),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

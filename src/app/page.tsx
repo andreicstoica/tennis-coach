@@ -42,13 +42,16 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex w-full flex-col items-start justify-start gap-10 p-4">
+    <div className="flex w-full flex-col items-center justify-start gap-10 p-10">
       {/* Top banner */}
-      <Card className="w-full">
+      <Card className="w-1/3">
         <CardHeader>
           <CardTitle>
             Welcome back,{" "}
-            {session.user.name.trim().split(" ")[0] ?? session.user.email}!
+            <span className="text-chart-2">
+              {session.user.name.trim().split(" ")[0] ?? session.user.email}
+            </span>
+            !
           </CardTitle>
           <CardDescription>
             Ready to improve your tennis game? Create a new practice session
