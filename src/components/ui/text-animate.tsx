@@ -1,7 +1,9 @@
-"use client"
+"use client";
 
-import { FC, useEffect, useRef } from "react"
-import { HTMLMotionProps, motion, useAnimation, useInView } from "motion/react"
+import { useEffect, useRef } from "react";
+import type { FC } from "react";
+import { motion, useAnimation, useInView } from "motion/react";
+import type { HTMLMotionProps, Variants } from "motion/react";
 
 type AnimationType =
   | "fadeIn"
@@ -11,16 +13,19 @@ type AnimationType =
   | "rollIn"
   | "whipIn"
   | "whipInUp"
-  | "calmInUp"
+  | "calmInUp";
 
 interface Props extends HTMLMotionProps<"div"> {
-  text: string
-  type?: AnimationType
-  delay?: number
-  duration?: number
+  text: string;
+  type?: AnimationType;
+  delay?: number;
+  duration?: number;
 }
 
-const animationVariants = {
+const animationVariants: Record<
+  AnimationType,
+  { container: Variants; child: Variants }
+> = {
   fadeIn: {
     container: {
       hidden: { opacity: 0 },
@@ -34,7 +39,7 @@ const animationVariants = {
         opacity: 1,
         y: [0, -10, 0],
         transition: {
-          type: "spring",
+          type: "spring" as const,
           damping: 12,
           stiffness: 100,
         },
@@ -67,7 +72,7 @@ const animationVariants = {
       visible: {
         opacity: 1,
         scale: 1.1,
-        transition: { type: "spring", damping: 15, stiffness: 400 },
+        transition: { type: "spring" as const, damping: 15, stiffness: 400 },
       },
       hidden: { opacity: 0, scale: 0 },
     },
@@ -82,12 +87,15 @@ const animationVariants = {
     child: {
       hidden: {
         y: "200%",
-        transition: { ease: [0.455, 0.03, 0.515, 0.955], duration: 0.85 },
+        transition: {
+          ease: [0.455, 0.03, 0.515, 0.955] as const,
+          duration: 0.85,
+        },
       },
       visible: {
         y: 0,
         transition: {
-          ease: [0.125, 0.92, 0.69, 0.975], //  Drawing attention to dynamic content or interactive elements, where the animation needs to be engaging but not abrupt
+          ease: [0.125, 0.92, 0.69, 0.975] as const, //  Drawing attention to dynamic content or interactive elements, where the animation needs to be engaging but not abrupt
           duration: 0.75,
           //   ease: [0.455, 0.03, 0.515, 0.955], // smooth and gradual acceleration followed by a steady deceleration towards the end of the animation
           //   ease: [0.115, 0.955, 0.655, 0.939], // smooth and gradual acceleration followed by a steady deceleration towards the end of the animation
@@ -108,7 +116,7 @@ const animationVariants = {
       hidden: {
         y: "100%", // Starting from below but not too far to ensure a dramatic but manageable shift.
         transition: {
-          ease: [0.75, 0, 0.25, 1], // Starting quickly
+          ease: [0.75, 0, 0.25, 1] as const, // Starting quickly
           duration: 0.6, // Shortened duration for a more dramatic start
         },
       },
@@ -116,7 +124,7 @@ const animationVariants = {
         y: 0,
         transition: {
           duration: 0.8, // Slightly longer to accommodate the slow middle and swift end
-          ease: [0.22, 1, 0.36, 1], // This easing function starts quickly (dramatic shift), slows down (slow middle), and ends quickly (clean swift end)
+          ease: [0.22, 1, 0.36, 1] as const, // This easing function starts quickly (dramatic shift), slows down (slow middle), and ends quickly (clean swift end)
         },
       },
     },
@@ -132,12 +140,15 @@ const animationVariants = {
     child: {
       hidden: {
         y: "200%",
-        transition: { ease: [0.455, 0.03, 0.515, 0.955], duration: 0.45 },
+        transition: {
+          ease: [0.455, 0.03, 0.515, 0.955] as const,
+          duration: 0.45,
+        },
       },
       visible: {
         y: 0,
         transition: {
-          ease: [0.5, -0.15, 0.25, 1.05],
+          ease: [0.5, -0.15, 0.25, 1.05] as const,
           duration: 0.75,
         },
       },
@@ -158,7 +169,7 @@ const animationVariants = {
         y: `0em`,
         transition: {
           duration: 0.65,
-          ease: [0.65, 0, 0.75, 1], // Great! Swift Beginning, Prolonged Ease, Quick Finish
+          ease: [0.65, 0, 0.75, 1] as const, // Great! Swift Beginning, Prolonged Ease, Quick Finish
           //   ease: [0.75, 0.05, 0.85, 1], // Quick Start, Smooth Middle, Sharp End
           //   ease: [0.7, -0.25, 0.9, 1.25], // Fast Acceleration, Gentle Slowdown, Sudden Snap
           //   ease: [0.7, -0.5, 0.85, 1.5], // Quick Leap, Soft Glide, Snappy Closure
@@ -184,12 +195,12 @@ const animationVariants = {
           //   ease: [0.75, 0.05, 0.85, 1], // Quick Start, Smooth Middle, Sharp End
           //   ease: [0.7, -0.25, 0.9, 1.25], // Fast Acceleration, Gentle Slowdown, Sudden Snap
           //   ease: [0.65, 0, 0.75, 1], // Great! Swift Beginning, Prolonged Ease, Quick Finish
-          ease: [0.85, 0.1, 0.9, 1.2], // Rapid Initiation, Subtle Slow, Sharp Conclusion
+          ease: [0.85, 0.1, 0.9, 1.2] as const, // Rapid Initiation, Subtle Slow, Sharp Conclusion
         },
       },
     },
   },
-}
+};
 
 const TextAnimate: FC<Props> = ({
   text,
@@ -201,13 +212,13 @@ const TextAnimate: FC<Props> = ({
   //     triggerOnce: true,
   //   });
 
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true })
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
 
-  const letters = Array.from(text)
-  const { container, child } = animationVariants[type]
+  const letters = Array.from(text);
+  const { container, child } = animationVariants[type];
 
-  const ctrls = useAnimation()
+  const ctrls = useAnimation();
 
   //   useEffect(() => {
   //     if (isInView) {
@@ -220,12 +231,12 @@ const TextAnimate: FC<Props> = ({
 
   if (type === "rollIn" || type === "whipIn") {
     return (
-      <h2 className="mt-10 text-3xl font-black text-black dark:text-neutral-100 py-5 pb-8 px-8 md:text-5xl">
+      <h2 className="mt-10 px-8 py-5 pb-8 text-3xl font-black text-black md:text-5xl dark:text-neutral-100">
         {text.split(" ").map((word, index) => {
           return (
             <motion.span
               ref={ref}
-              className="inline-block mr-[0.25em] whitespace-nowrap"
+              className="mr-[0.25em] inline-block whitespace-nowrap"
               aria-hidden="true"
               key={index}
               initial="hidden"
@@ -244,17 +255,17 @@ const TextAnimate: FC<Props> = ({
                     aria-hidden="true"
                     key={index}
                     variants={child}
-                    className="inline-block -mr-[0.01em]"
+                    className="-mr-[0.01em] inline-block"
                   >
                     {character}
                   </motion.span>
-                )
+                );
               })}
             </motion.span>
-          )
+          );
         })}
       </h2>
-    )
+    );
   }
 
   return (
@@ -264,7 +275,7 @@ const TextAnimate: FC<Props> = ({
       variants={container}
       initial="hidden"
       animate="visible"
-      className="mt-10 text-4xl font-black text-black dark:text-neutral-100 py-5 pb-8 px-8 md:text-5xl"
+      className="mt-10 px-8 py-5 pb-8 text-4xl font-black text-black md:text-5xl dark:text-neutral-100"
       {...props}
     >
       {letters.map((letter, index) => (
@@ -273,8 +284,8 @@ const TextAnimate: FC<Props> = ({
         </motion.span>
       ))}
     </motion.h2>
-  )
-}
+  );
+};
 
-export { TextAnimate }
-export default TextAnimate
+export { TextAnimate };
+export default TextAnimate;
