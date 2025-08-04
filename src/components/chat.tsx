@@ -199,69 +199,70 @@ export function Chat({ chatId }: { chatId: string }) {
         )}
 
         <div className="space-y-4">
-          {/* Render practice plan once at the top if it exists and we have assistant messages */}
-          {practiceSessionData?.plan &&
-            messages.some((m) => m.role === "assistant") && (
-              <div className="mb-4">
-                {(() => {
-                  try {
-                    const practice = JSON.parse(
-                      practiceSessionData.plan,
-                    ) as PracticePlan;
-                    return (
-                      <PracticeUi
-                        warmup={practice.warmup}
-                        drill={practice.drill}
-                        game={practice.game}
-                      />
-                    );
-                  } catch (error) {
-                    console.error("Failed to parse practice plan:", error);
-                    return null; // Failed to parse practice plan
-                  }
-                })()}
-              </div>
-            )}
+          {/* Render all messages in order */}
+          {messages.map((message) => {
+            // Check if this assistant message contains practice plan keywords
+            const messageContainsPracticePlan =
+              message.role === "assistant" &&
+              message.content &&
+              (message.content.includes("practice session") ||
+                message.content.includes("warmup") ||
+                message.content.includes("drill"));
 
-          {/* Render all messages normally */}
-          {messages.map((message) =>
-            message.parts.map((part, _i) => {
-              switch (part.type) {
-                case "text":
-                  // Skip assistant messages that contain practice plans if we already rendered the plan UI
-                  if (
-                    message.role === "assistant" &&
-                    practiceSessionData?.plan &&
-                    message.content.includes("Here's your") &&
-                    message.content.includes("practice session")
-                  ) {
-                    return null;
-                  }
+            return (
+              <div key={message.id}>
+                {/* Render message first if it's a user message */}
+                {message.role === "user" && (
+                  <Card className="bg-primary text-primary-foreground ml-auto max-w-[80%]">
+                    <CardContent className="p-4">
+                      <div className="mb-1 text-sm font-medium">You</div>
+                      <div className="text-sm whitespace-pre-wrap">
+                        {message.content}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
-                  return (
-                    <Card
-                      key={message.id}
-                      className={`${
-                        message.role === "user"
-                          ? "bg-primary text-primary-foreground ml-auto max-w-[80%]"
-                          : "bg-muted mr-auto max-w-[80%]"
-                      }`}
-                    >
+                {/* Render practice UI if this assistant message is about a practice plan */}
+                {messageContainsPracticePlan && practiceSessionData?.plan && (
+                  <div className="mb-4">
+                    {(() => {
+                      try {
+                        const practice = JSON.parse(
+                          practiceSessionData.plan,
+                        ) as PracticePlan;
+                        return (
+                          <PracticeUi
+                            warmup={practice.warmup}
+                            drill={practice.drill}
+                            game={practice.game}
+                          />
+                        );
+                      } catch (error) {
+                        console.error("Failed to parse practice plan:", error);
+                        return null;
+                      }
+                    })()}
+                  </div>
+                )}
+
+                {/* Render assistant message if it's not about a practice plan or if we don't have practice data */}
+                {message.role === "assistant" &&
+                  message.content &&
+                  (!messageContainsPracticePlan ||
+                    !practiceSessionData?.plan) && (
+                    <Card className="bg-muted mr-auto max-w-[80%]">
                       <CardContent className="p-4">
-                        <div className="mb-1 text-sm font-medium">
-                          {message.role === "user" ? "You" : "Coach"}
-                        </div>
+                        <div className="mb-1 text-sm font-medium">Coach</div>
                         <div className="text-sm whitespace-pre-wrap">
                           {message.content}
                         </div>
                       </CardContent>
                     </Card>
-                  );
-                default:
-                  return null;
-              }
-            }),
-          )}
+                  )}
+              </div>
+            );
+          })}
 
           {/* Show loading state when streaming and no assistant messages yet */}
           {isThinking && (
