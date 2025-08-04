@@ -42,33 +42,46 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex w-full flex-col items-center justify-start gap-10 p-10">
-      {/* Top banner */}
-      <Card className="w-1/3">
-        <CardHeader>
-          <CardTitle>
-            Welcome back,{" "}
-            <span className="text-chart-2">
-              {session.user.name.trim().split(" ")[0] ?? session.user.email}
-            </span>
-            !
-          </CardTitle>
-          <CardDescription>
-            Ready to improve your tennis game? Create a new practice session
-            tailored to your goals.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Link href="/practice-session">
-            <Button className="w-full" size="lg">
-              Create New Practice Session
-            </Button>
-          </Link>
-        </CardContent>
-      </Card>
+    <div className="flex w-full flex-col">
+      {/* Hero Section with Background */}
+      <div className="relative flex min-h-[70vh] w-full flex-col items-center justify-center px-10 py-20">
+        {/* Background image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-75"
+          style={{ backgroundImage: "url(/background.png)" }}
+        />
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/20 to-white" />
 
-      {/* Previous sessions */}
-      <section className="flex w-full flex-col justify-start">
+        {/* Welcome Card */}
+        <div className="relative z-10">
+          <Card className="w-full max-w-lg">
+            <CardHeader>
+              <CardTitle className="text-center text-2xl">
+                Welcome back,{" "}
+                <span className="text-chart-2">
+                  {session.user.name.trim().split(" ")[0] ?? session.user.email}
+                </span>
+                !
+              </CardTitle>
+              <CardDescription className="text-center">
+                Ready to improve your tennis game? Create a new practice
+                session.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link href="/practice-session">
+                <Button className="w-full" size="lg">
+                  Create New Practice Session
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Previous sessions - peeking through */}
+      <section className="bg-background w-full px-10 pb-10">
         <h2 className="mb-4 ml-1.5 text-lg font-bold">
           Previous Practice Sessions
         </h2>

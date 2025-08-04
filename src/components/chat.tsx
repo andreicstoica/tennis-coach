@@ -2,7 +2,7 @@
 
 import { useChat } from "@ai-sdk/react";
 import { createIdGenerator, type Message } from "ai";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback, memo } from "react";
 import { api } from "~/trpc/react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -14,12 +14,129 @@ import { THINKING_MESSAGES } from "./thinking-messages";
 import { motion } from "framer-motion";
 import { type PracticePlan } from "~/lib/schemas/practice-plan";
 
+// Memoized ChatMessage component to prevent unnecessary re-renders
+const ChatMessage = memo(
+  ({
+    message,
+    parsedPracticePlan,
+  }: {
+    message: Message;
+    parsedPracticePlan: PracticePlan | null;
+  }) => {
+    // Check if this assistant message contains practice plan keywords
+    const messageContainsPracticePlan =
+      message.role === "assistant" &&
+      message.content &&
+      (message.content.includes("practice session") ||
+        message.content.includes("warmup") ||
+        message.content.includes("drill"));
+
+    return (
+      <div>
+        {/* Render message first if it's a user message */}
+        {message.role === "user" && (
+          <Card className="bg-primary text-primary-foreground ml-auto max-w-[80%]">
+            <CardContent className="p-4">
+              <div className="mb-1 text-sm font-medium">You</div>
+              <div className="text-sm whitespace-pre-wrap">
+                {message.content}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Render practice UI if this assistant message is about a practice plan */}
+        {messageContainsPracticePlan && parsedPracticePlan && (
+          <div className="mb-4">
+            <PracticeUi
+              warmup={parsedPracticePlan.warmup}
+              drill={parsedPracticePlan.drill}
+              game={parsedPracticePlan.game}
+            />
+          </div>
+        )}
+
+        {/* Render assistant message if it's not about a practice plan or if we don't have practice data */}
+        {message.role === "assistant" &&
+          message.content &&
+          (!messageContainsPracticePlan || !parsedPracticePlan) && (
+            <Card className="bg-muted mr-auto max-w-[80%]">
+              <CardContent className="p-4">
+                <div className="mb-1 text-sm font-medium">Coach</div>
+                <div className="text-sm whitespace-pre-wrap">
+                  {message.content}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+      </div>
+    );
+  },
+);
+
+ChatMessage.displayName = "ChatMessage";
+
+// Memoized ThinkingIndicator component
+const ThinkingIndicator = memo(
+  ({
+    currentThinkingMessageIndex,
+  }: {
+    currentThinkingMessageIndex: number;
+  }) => (
+    <Card className="bg-muted mr-auto max-w-[80%]">
+      <CardContent className="p-4">
+        <div className="mb-1 text-sm font-medium">Coach</div>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <motion.div
+              key={currentThinkingMessageIndex}
+              className="text-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1.75 }}
+            >
+              {THINKING_MESSAGES[currentThinkingMessageIndex]}
+            </motion.div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  ),
+);
+
+ThinkingIndicator.displayName = "ThinkingIndicator";
+
 export function Chat({ chatId }: { chatId: string }) {
-  const { data: chatData } = api.chat.get.useQuery({ chatId });
+  const { data: chatData } = api.chat.get.useQuery(
+    { chatId },
+    {
+      staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+      gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    },
+  );
 
   // Get practice session data to display practice plan
   const { data: practiceSessionData } =
-    api.practiceSession.getByChatId.useQuery({ chatId }, { enabled: !!chatId });
+    api.practiceSession.getByChatId.useQuery(
+      { chatId },
+      {
+        enabled: !!chatId,
+        staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+        gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+      },
+    );
+
+  // Memoize the parsed practice plan to avoid expensive JSON parsing on every render
+  const parsedPracticePlan = useMemo(() => {
+    if (!practiceSessionData?.plan) return null;
+    try {
+      return JSON.parse(practiceSessionData.plan) as PracticePlan;
+    } catch (error) {
+      console.error("Failed to parse practice plan:", error);
+      return null;
+    }
+  }, [practiceSessionData?.plan]);
 
   const {
     messages,
@@ -60,20 +177,22 @@ export function Chat({ chatId }: { chatId: string }) {
   // Auto scroll when message is streaming
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  // Initial scroll on mount
-  useEffect(() => {
-    scrollToBottom();
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
+
+  // Debounce scroll for better performance
+  const debouncedScroll = useMemo(() => {
+    let timeoutId: NodeJS.Timeout;
+    return () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(scrollToBottom, 100);
+    };
+  }, [scrollToBottom]);
+
+  useEffect(() => {
+    debouncedScroll();
+  }, [messages, debouncedScroll]);
 
   // Initialize messages and check for reload
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -151,22 +270,21 @@ export function Chat({ chatId }: { chatId: string }) {
     );
   }, [isThinking, status, hasAssistantResponse, messages]);
 
+  const updateThinkingMessage = useCallback(() => {
+    setCurrentThinkingMessageIndex(
+      (prev) => (prev + 1) % THINKING_MESSAGES.length,
+    );
+  }, []);
+
   useEffect(() => {
-    let intervalId: NodeJS.Timeout | null = null;
-    if (isThinking) {
-      intervalId = setInterval(() => {
-        setCurrentThinkingMessageIndex(
-          (prevIndex) => (prevIndex + 1) % THINKING_MESSAGES.length,
-        );
-      }, 3000); // Change message every 3 seconds
-    } else {
-      // Reset index when not thinking
+    if (!isThinking) {
       setCurrentThinkingMessageIndex(0);
+      return;
     }
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [isThinking]); // Re-run effect when isThinking changes
+
+    const intervalId = setInterval(updateThinkingMessage, 3000);
+    return () => clearInterval(intervalId);
+  }, [isThinking, updateThinkingMessage]);
   // --- END CYCLING "THINKING" MESSAGES ---
 
   if (chatData === undefined) {
@@ -199,91 +317,20 @@ export function Chat({ chatId }: { chatId: string }) {
         )}
 
         <div className="space-y-4">
-          {/* Render practice plan once at the top if it exists and we have assistant messages */}
-          {practiceSessionData?.plan &&
-            messages.some((m) => m.role === "assistant") && (
-              <div className="mb-4">
-                {(() => {
-                  try {
-                    const practice = JSON.parse(
-                      practiceSessionData.plan,
-                    ) as PracticePlan;
-                    return (
-                      <PracticeUi
-                        warmup={practice.warmup}
-                        drill={practice.drill}
-                        game={practice.game}
-                      />
-                    );
-                  } catch (error) {
-                    console.error("Failed to parse practice plan:", error);
-                    return null; // Failed to parse practice plan
-                  }
-                })()}
-              </div>
-            )}
-
-          {/* Render all messages normally */}
-          {messages.map((message) =>
-            message.parts.map((part, _i) => {
-              switch (part.type) {
-                case "text":
-                  // Skip assistant messages that contain practice plans if we already rendered the plan UI
-                  if (
-                    message.role === "assistant" &&
-                    practiceSessionData?.plan &&
-                    message.content.includes("Here's your") &&
-                    message.content.includes("practice session")
-                  ) {
-                    return null;
-                  }
-
-                  return (
-                    <Card
-                      key={message.id}
-                      className={`${
-                        message.role === "user"
-                          ? "bg-primary text-primary-foreground ml-auto max-w-[80%]"
-                          : "bg-muted mr-auto max-w-[80%]"
-                      }`}
-                    >
-                      <CardContent className="p-4">
-                        <div className="mb-1 text-sm font-medium">
-                          {message.role === "user" ? "You" : "Coach"}
-                        </div>
-                        <div className="text-sm whitespace-pre-wrap">
-                          {message.content}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                default:
-                  return null;
-              }
-            }),
-          )}
+          {/* Render all messages in order */}
+          {messages.map((message) => (
+            <ChatMessage
+              key={message.id}
+              message={message}
+              parsedPracticePlan={parsedPracticePlan}
+            />
+          ))}
 
           {/* Show loading state when streaming and no assistant messages yet */}
           {isThinking && (
-            <Card className="bg-muted mr-auto max-w-[80%]">
-              <CardContent className="p-4">
-                <div className="mb-1 text-sm font-medium">Coach</div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <motion.div
-                      key={currentThinkingMessageIndex}
-                      className="text-sm"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 1.75 }}
-                    >
-                      {THINKING_MESSAGES[currentThinkingMessageIndex]}
-                    </motion.div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <ThinkingIndicator
+              currentThinkingMessageIndex={currentThinkingMessageIndex}
+            />
           )}
 
           <div ref={messagesEndRef} />
